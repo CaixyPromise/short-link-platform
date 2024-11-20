@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.caixy.shortlink.mapper.LinkMapper">
+
+    <resultMap id="BaseResultMap" type="com.caixy.shortlink.model.entity.Link">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="domain" column="domain" jdbcType="VARCHAR"/>
+            <result property="linkName" column="link_name" jdbcType="VARCHAR"/>
+            <result property="shortUri" column="short_uri" jdbcType="VARCHAR"/>
+            <result property="fullShortUrl" column="full_short_url" jdbcType="VARCHAR"/>
+            <result property="originUrl" column="origin_url" jdbcType="VARCHAR"/>
+            <result property="clickNum" column="click_num" jdbcType="INTEGER"/>
+            <result property="gid" column="gid" jdbcType="VARCHAR"/>
+            <result property="favicon" column="favicon" jdbcType="VARCHAR"/>
+            <result property="enableStatus" column="enable_status" jdbcType="TINYINT"/>
+            <result property="createdType" column="created_type" jdbcType="TINYINT"/>
+            <result property="validDateType" column="valid_date_type" jdbcType="TINYINT"/>
+            <result property="validDate" column="valid_date" jdbcType="TIMESTAMP"/>
+            <result property="description" column="description" jdbcType="VARCHAR"/>
+            <result property="totalPv" column="total_pv" jdbcType="INTEGER"/>
+            <result property="totalUv" column="total_uv" jdbcType="INTEGER"/>
+            <result property="totalUip" column="total_uip" jdbcType="INTEGER"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+            <result property="delTime" column="del_time" jdbcType="BIGINT"/>
+            <result property="isDeleted" column="is_deleted" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,domain,link_name,short_uri,
+        full_short_url,origin_url,click_num,
+        gid,favicon,enable_status,
+        created_type,valid_date_type,valid_date,
+        description,total_pv,total_uv,
+        total_uip,create_time,update_time,
+        del_time,is_deleted
+    </sql>
+
+    <select id="findShortLinkBySuffix" resultType="com.caixy.shortlink.model.entity.Link">
+        SELECT
+            <include refid="Base_Column_List"/>
+        FROM link
+            WHERE
+                short_uri = #{suffix}
+                AND is_deleted = 0
+    </select>
+
+    <select id="queryLinksByGidAndNickName" resultMap="BaseResultMap">
+        SELECT
+            l.id AS id,
+            l.domain,
+            l.short_uri,
+            l.link_name,
+            l.full_short_url,
+            l.origin_url,
+            l.click_num,
+            l.gid,
+            l.favicon,
+            l.enable_status,
+            l.created_type,
+            l.valid_date_type,
+            l.valid_date,
+            l.description,
+            l.total_pv,
+            l.total_uv,
+            l.total_uip,
+            l.create_time,
+            l.update_time,
+            l.del_time,
+            l.is_deleted,
+            g.id AS group_id,
+            g.name AS group_name,
+            g.username AS group_username,
+            g.description AS group_description
+        FROM
+            t_link l
+        INNER JOIN
+            t_group g
+        ON
+            l.gid = g.gid
+        WHERE
+            l.is_deleted = 0
+        AND g.is_deleted = 0
+            <if test="gid != null and gid != ''">
+                AND l.gid = #{gid}
+            </if>
+            <if test="nickName != null and nickName != ''">
+                AND g.username = #{nickName}
+            </if>
+    </select>
+
+
+</mapper>

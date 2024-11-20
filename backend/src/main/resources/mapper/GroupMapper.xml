@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.caixy.shortlink.mapper.GroupMapper">
+
+    <resultMap id="BaseResultMap" type="com.caixy.shortlink.model.entity.Group">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="gid" column="gid" jdbcType="VARCHAR"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="description" column="description" jdbcType="VARCHAR" />
+            <result property="username" column="username" jdbcType="VARCHAR"/>
+            <result property="sortOrder" column="sort_order" jdbcType="INTEGER"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+            <result property="isDeleted" column="is_deleted" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,gid,name,description,
+        username,sort_order,create_time,
+        update_time,is_deleted
+    </sql>
+    <select id="findGroupByGid" resultType="com.caixy.shortlink.model.entity.Group">
+        select
+            <include refid="Base_Column_List"/>
+        from t_group
+            <if test="gid != null">
+                where gid = #{gid};
+            </if>
+    </select>
+
+    <select id="findGroupsWithLinkCounts" resultType="com.caixy.shortlink.model.vo.group.GroupItemVO">
+        SELECT
+            g.gid,
+            g.name,
+            COUNT(l.id) AS linkCount
+        FROM
+            t_group g
+                LEFT JOIN
+            t_link l
+            ON
+                g.gid = l.gid AND l.is_deleted = 0
+        WHERE
+            g.username = #{nickName}
+            AND
+            g.is_deleted = 0
+        GROUP BY
+            g.gid, g.name;
+    </select>
+
+</mapper>

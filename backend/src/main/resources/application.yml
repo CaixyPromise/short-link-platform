@@ -1,0 +1,242 @@
+config:
+  mysql:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://localhost:3306/short_link?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: as123456789
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  redis:
+    database: 1
+    host: localhost
+    port: 6379
+#    password: 123456
+    timeout: 3000
+
+# 公共配置文件
+spring:
+  application:
+    name: @application.name@
+  # 默认 dev 环境
+  profiles:
+    active: dev
+  # 支持 swagger3
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  # session 配置
+  session:
+    # todo 取消注释开启分布式 session（须先配置 Redis）
+    store-type: redis
+    # 30 天过期
+    timeout: 2592000
+  # 数据库配置
+  # todo 需替换配置
+  datasource:
+    type: ${config.mysql.type}
+    driver-class-name: ${config.mysql.driver-class-name}
+    url: ${config.mysql.url}
+    username: ${config.mysql.username}
+    password: ${config.mysql.password}
+    druid:
+      initial-size: 5 # 连接池初始化时创建的连接数。默认值为0。
+      min-idle: 5 # 连接池中保持的最小空闲连接数量。当连接池中的连接数量小于这个值时，连接池会尝试创建新的连接。默认值为0。
+      max-active: 20 # 连接池中允许的最大连接数。如果所有连接都被使用并且没有空闲连接，新的连接请求将被阻塞，直到有连接可用。默认值为8。
+      max-wait: 60000 # 获取连接时的最大等待时间，单位为毫秒。如果在指定的时间内无法获取到连接，将抛出异常。默认值为-1，表示无限等待。
+      time-between-eviction-runs-millis: 60000 # 连接池每次检测空闲连接的间隔时间，单位为毫秒。默认值为60000毫秒（1分钟）。
+      min-evictable-idle-time-millis: 300000 # 连接在连接池中的最小空闲时间，超过这个时间的连接将被回收，单位为毫秒。默认值为300000毫秒（5分钟）。
+      validation-query: SELECT 1 # 用于验证连接是否有效的SQL查询语句。Druid会定期执行此查询来检测连接的可用性。默认为"SELECT 1"。
+      test-while-idle: true # 是否在连接空闲时检测连接的有效性。如果设置为true，则连接池会定期检测空闲连接，如果连接失效，将被标记为不可用并移除。默认为true。
+      test-on-borrow: false # 是否在从连接池借用连接时检测连接的有效性。如果设置为true，每次从连接池借用连接时都会执行连接有效性检测。默认为false。
+      test-on-return: false # 是否在归还连接到连接池时检测连接的有效性。如果设置为true，连接在归还到连接池时会进行有效性检测。默认为false。
+      pool-prepared-statements: true # 是否开启预处理语句池。预处理语句池可以提高性能，特别是在执行相同SQL语句多次时。默认为true。
+      max-pool-prepared-statement-per-connection-size: 20 #每个连接上允许的最大预处理语句数。默认值为20。
+
+  # 文件上传
+  servlet:
+    multipart:
+      # 大小限制
+      max-file-size: 10MB
+  data:
+    elasticsearch:
+      repositories:
+        enabled: false
+    # Redis 配置
+    redis:
+      database: ${config.redis.database}
+      host: ${config.redis.host}
+      port: ${config.redis.port}
+      timeout: ${config.redis.timeout}
+      #password: #todo: set redis password if needed
+
+server:
+  address: 0.0.0.0
+  port: 9998
+  servlet:
+    context-path: /api
+    # cookie 30 天过期
+    session:
+      cookie:
+        max-age: 2592000
+mybatis-plus:
+  configuration:
+#    map-underscore-to-camel-case: false
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: is_deleted # 全局逻辑删除的实体字段名
+      logic-delete-value: 1 # 逻辑已删除值（默认为 1）
+      logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
+# 微信相关
+wx:
+  # 微信公众平台
+  # todo 需替换配置
+  mp:
+    token: xxx
+    aesKey: xxx
+    appId: xxx
+    secret: xxx
+    config-storage:
+      http-client-type: HttpClient
+      key-prefix: wx
+      redis:
+        host: 127.0.0.1
+        port: 6379
+      type: Memory
+  # 微信开放平台
+  # todo 需替换配置
+  open:
+    appId: xxx
+    appSecret: xxx
+# 对象存储
+# todo 需替换配置
+cos:
+  client:
+    accessKey: xxx
+    secretKey: xxx
+    region: xxx
+    bucket: xxx
+# 接口文档配置
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.caixy.shortlink.controller
+knife4j:
+  enable: true
+  openapi:
+    title: "${spring.application.name}-接口文档"
+    version: 1.0
+    group:
+      default:
+        api-rule: package
+        api-rule-resources:
+          - com.caixy.shortlink.controller
+    description: "${info.app.description}"
+    license: ${info.app.license}
+    contact:
+      name: ${info.author.name}
+      email: ${info.author.email}
+      url: ${info.author.url}
+
+redis-session:
+  instances:
+    limiter:
+      database: ${config.redis.database}
+      host: ${config.redis.host}
+      port: ${config.redis.port}
+    lock:
+      database: 3
+      host: ${config.redis.host}
+      port: ${config.redis.port}
+    default:
+      database: 1
+      host: ${config.redis.host}
+      port: ${config.redis.port}
+
+encryption:
+  key: CAIXYRPOMISE
+
+thread-pool:
+  instances:
+    default:
+      corePoolSize: 2
+      maxPoolSize: 4
+      queueCapacity: 30
+      keepAliveSeconds: 120
+      timeUnit: SECONDS
+
+# 文件存储
+storage:
+  location: uploads
+  forceCreated: true
+  staticPath: /static
+
+
+
+info:
+  app:
+    name: ${spring.application.name}
+    description: @application.description@
+    version: @project.release.version@
+    license: @license.name@
+    startup-time: ${app.startup-time}
+    serverAddress: ${app.serverHost}:${server.port}${server.servlet.context-path}
+    api-document: ${info.app.serverAddress}/doc.html
+  author:
+    name: CAIXYPROMISE
+    email: caixypromised@gmail.com
+    github: https://github.com/CaixyPromise
+
+xss:
+  # 过滤开关
+  enabled: true
+  # 排除链接（多个用逗号分隔）
+  excludes: /auth/**,/captcha/**,/swagger-resources/**,/v2/api-docs,${storage.staticPath}/**
+  # 匹配链接
+  urlPatterns: /monitor/*,
+
+login:
+  type: session
+
+management:
+  metrics:
+    web:
+      server:
+        request:
+          autotime:
+            enabled: true
+    enable:
+      logback: true
+
+  endpoints:
+    web:
+      base-path: "/actuator"
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: "always"
+    info:
+      enabled: true
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+    httptrace:
+      enabled: true
+  info:
+    env:
+      enabled: true
+  health:
+    elasticsearch:
+      enabled: false
+
+short-link:
+  default:
+    domain: https://short.caixyowo.cn
