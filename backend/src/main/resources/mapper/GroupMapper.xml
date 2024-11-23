@@ -34,19 +34,23 @@
         SELECT
             g.gid,
             g.name,
-            COUNT(l.id) AS linkCount
+            IFNULL(l.linkCount, 0) AS linkCount
         FROM
-            t_group g
-                LEFT JOIN
-            t_link l
-            ON
-                g.gid = l.gid AND l.is_deleted = 0
+            short_link.t_group g
+                LEFT JOIN (
+                SELECT
+                    gid,
+                    COUNT(1) AS linkCount
+                FROM
+                    short_link.t_link
+                WHERE
+                    is_deleted = 0
+                GROUP BY
+                    gid
+            ) l ON g.gid = l.gid
         WHERE
             g.username = #{nickName}
-            AND
-            g.is_deleted = 0
-        GROUP BY
-            g.gid, g.name;
+          AND g.is_deleted = 0;
     </select>
 
 </mapper>
