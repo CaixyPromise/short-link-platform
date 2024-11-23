@@ -33,7 +33,7 @@
         id,domain,link_name,short_uri,
         full_short_url,origin_url,click_num,
         gid,favicon,enable_status,
-        created_type,valid_date_type,valid_date_start,, valid_date_end
+        created_type,valid_date_type,valid_date_start, valid_date_end
         description,total_pv,total_uv,
         total_uip,create_time,update_time,
         del_time,is_deleted
