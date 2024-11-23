@@ -31,7 +31,7 @@ const DataTable = <T extends Record<string, any>>({
             initialPagination={initialPagination}
         >
             <div className={className} style={style}>
-                {components?.SearchArea !== null && (components?.SearchArea || <SearchAreaBar  />)}
+                {components?.SearchArea !== null && (components?.SearchArea || <SearchAreaBar />)}
                 <div className="mt-4">
                     <Card>
                         <TooltipProvider>

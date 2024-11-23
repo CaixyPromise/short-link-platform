@@ -76,9 +76,14 @@ public class LinkVO extends BaseSerializablePayload
     private Integer validDateType;
 
     /**
-     * 有效期
+     * 有效期开始
      */
-    private Date validDate;
+    private Date validDateStart;
+
+    /**
+    * 有效期结束
+    */
+    private Date validDateEnd;
 
     /**
      * 描述

@@ -40,7 +40,6 @@ import jakarta.servlet.http.HttpServletRequest;
 @RequestMapping("/link")
 public class LinkController
 {
-
     private final LinkService linkService;
 
     private final AuthManager authManager;
@@ -58,7 +57,7 @@ public class LinkController
     public Result<LinkCreateVO> addLink(@Valid @RequestBody LinkAddRequest linkAddRequest, HttpServletRequest request)
     {
         authManager.checkLogin();
-        return ResultUtils.success(linkService.addShortLink(linkAddRequest));
+        return ResultUtils.success(linkService.addShortLinkFormWeb(linkAddRequest));
     }
 
     /**

@@ -20,7 +20,7 @@ public enum ShortLinkCreateType
     /**
      * 控制台创建
      */
-    MANUAL(1, "控制台创建"),
+    CONSOLE(1, "控制台创建"),
     ;
     private final Integer code;
     private final String desc;

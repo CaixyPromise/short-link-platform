@@ -17,7 +17,8 @@
             <result property="enableStatus" column="enable_status" jdbcType="TINYINT"/>
             <result property="createdType" column="created_type" jdbcType="TINYINT"/>
             <result property="validDateType" column="valid_date_type" jdbcType="TINYINT"/>
-            <result property="validDate" column="valid_date" jdbcType="TIMESTAMP"/>
+            <result property="validDateStart" column="valid_date_start" jdbcType="TIMESTAMP"/>
+            <result property="validDateEnd" column="valid_date_end" jdbcType="TIMESTAMP"/>
             <result property="description" column="description" jdbcType="VARCHAR"/>
             <result property="totalPv" column="total_pv" jdbcType="INTEGER"/>
             <result property="totalUv" column="total_uv" jdbcType="INTEGER"/>
@@ -32,7 +33,7 @@
         id,domain,link_name,short_uri,
         full_short_url,origin_url,click_num,
         gid,favicon,enable_status,
-        created_type,valid_date_type,valid_date,
+        created_type,valid_date_type,valid_date_start,, valid_date_end
         description,total_pv,total_uv,
         total_uip,create_time,update_time,
         del_time,is_deleted
@@ -61,7 +62,8 @@
             l.enable_status,
             l.created_type,
             l.valid_date_type,
-            l.valid_date,
+            l.valid_date_start,
+            l.valid_date_end,
             l.description,
             l.total_pv,
             l.total_uv,

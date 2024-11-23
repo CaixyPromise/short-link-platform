@@ -85,9 +85,14 @@ public class Link extends BaseEntity implements Serializable {
     private Integer validDateType;
 
     /**
-     * 有效期
+     * 有效期-开始时间
      */
-    private Date validDate;
+    private Date validDateStart;
+
+    /**
+    * 有效期-结束时间
+    */
+    private Date validDateEnd;
 
     /**
      * 描述

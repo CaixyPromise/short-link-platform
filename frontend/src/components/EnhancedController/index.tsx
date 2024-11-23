@@ -19,7 +19,7 @@ const EnhancedController:React.FC<EnhancedControllerProps> = ({ control, name, r
                         <TooltipTrigger asChild>
                             {React.cloneElement(children, {
                                 ...field,
-                                isError: !!error,  // 可用于显示错误状态
+                                // isError: !!error,  // 可用于显示错误状态
                             })}
                         </TooltipTrigger>
                         {error && (

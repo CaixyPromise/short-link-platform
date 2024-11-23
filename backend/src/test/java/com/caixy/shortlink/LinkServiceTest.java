@@ -25,12 +25,11 @@ public class LinkServiceTest
         LinkAddRequest linkAddRequest = new LinkAddRequest();
         linkAddRequest.setOriginUrl("https://www.baidu.com/");
         linkAddRequest.setGid("5iarerh5fn");
-        linkAddRequest.setCreatedType(1);
-        linkAddRequest.setValidDate(new Date());
+        linkAddRequest.setValidDateStart(new Date());
         linkAddRequest.setValidDateType(0);
         linkAddRequest.setDescribe("测试链接");
 
-        LinkCreateVO linkCreateVO = linkService.addShortLink(linkAddRequest);
+        LinkCreateVO linkCreateVO = linkService.addShortLinkFormWeb(linkAddRequest);
         System.out.println(linkCreateVO);
         assert linkCreateVO != null;
     }

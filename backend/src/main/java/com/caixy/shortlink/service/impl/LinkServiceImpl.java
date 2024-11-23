@@ -17,6 +17,7 @@ import com.caixy.shortlink.model.dto.link.LinkQueryRequest;
 import com.caixy.shortlink.model.entity.Link;
 
 import com.caixy.shortlink.model.entity.LinkGoto;
+import com.caixy.shortlink.model.enums.ShortLinkCreateType;
 import com.caixy.shortlink.model.enums.ShortLinkDateType;
 import com.caixy.shortlink.model.vo.link.LinkCreateVO;
 import com.caixy.shortlink.model.vo.link.LinkVO;
@@ -83,21 +84,52 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
     @Override
     public void validLink(Link link, boolean add)
     {
-        ThrowUtils.throwIf(link == null, ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(link == null, ErrorCode.PARAMS_ERROR, "链接对象不能为空");
+
+        // 校验原始链接
         String originUrl = link.getOriginUrl();
-        ThrowUtils.throwIf(StringUtils.isBlank(originUrl) || !RegexUtils.validUrl(link.getOriginUrl()),
+        ThrowUtils.throwIf(StringUtils.isBlank(originUrl) || !RegexUtils.validUrl(originUrl),
                 ErrorCode.PARAMS_ERROR, "原始链接格式错误");
+
+        // 校验描述
         ThrowUtils.throwIf(StringUtils.isBlank(link.getDescription()), ErrorCode.PARAMS_ERROR, "描述不能为空");
+
+        // 校验分组 ID
+        ThrowUtils.throwIf(StringUtils.isBlank(link.getGid()), ErrorCode.PARAMS_ERROR, "分组 ID 不能为空");
+
+        // 校验有效期类型
         ShortLinkDateType dateType = ShortLinkDateType.getEnumByCode(link.getValidDateType());
-        ThrowUtils.throwIf(dateType == null || dateType.equals(ShortLinkDateType.CUSTOM) &&
-                                               DateUtils.isBeforeNow(link.getValidDate()), ErrorCode.PARAMS_ERROR,
-                "有效日期类型错误");
-        ThrowUtils.throwIf(StringUtils.isBlank(link.getGid()), ErrorCode.PARAMS_ERROR, "分组id不能为空");
+        ThrowUtils.throwIf(dateType == null, ErrorCode.PARAMS_ERROR, "有效日期类型错误");
+
+        // 如果是自定义有效期，校验开始时间和结束时间
+        if (dateType.equals(ShortLinkDateType.CUSTOM))
+        {
+            Date validDateStart = link.getValidDateStart();
+            Date validDateEnd = link.getValidDateEnd();
+
+            ThrowUtils.throwIf(validDateStart == null || validDateEnd == null,
+                    ErrorCode.PARAMS_ERROR, "自定义有效期的开始时间和结束时间不能为空");
+
+            ThrowUtils.throwIf(DateUtils.isBeforeNow(validDateStart),
+                    ErrorCode.PARAMS_ERROR, "有效期的开始时间不能早于当前时间");
+            log.info("有效期的开始时间: {}", validDateStart);
+            log.info("有效期的结束时间: {}", validDateEnd);
+            ThrowUtils.throwIf(!DateUtils.isAfter(validDateEnd, validDateStart),
+                    ErrorCode.PARAMS_ERROR, "有效期的结束时间必须晚于开始时间");
+        }
     }
 
+
+    /**
+     * 从页面添加的短链接
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @version 2024/11/22 17:55
+     */
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public LinkCreateVO addShortLink(LinkAddRequest linkAddRequest)
+    public LinkCreateVO addShortLinkFormWeb(LinkAddRequest linkAddRequest)
     {
         String shortLinkSuffix = generateShortLinkSuffix(linkAddRequest);
         String finalShortLink = StrBuilder.create()
@@ -115,8 +147,9 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
                         .description(linkAddRequest.getDescribe())
                         .originUrl(linkAddRequest.getOriginUrl())
                         .validDateType(linkAddRequest.getValidDateType())
-                        .validDate(linkAddRequest.getValidDate())
-                        .createdType(linkAddRequest.getCreatedType())
+                        .validDateStart(linkAddRequest.getValidDateStart())
+                        .validDateEnd(linkAddRequest.getValidDateEnd())
+                        .createdType(ShortLinkCreateType.CONSOLE.getCode())
                         .enableStatus(0)
                         .clickNum(0)
                         .totalPv(0)

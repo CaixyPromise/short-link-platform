@@ -24,7 +24,7 @@ public interface LinkService extends IService<Link> {
      */
     void validLink(Link link, boolean add);
 
-    LinkCreateVO addShortLink(LinkAddRequest linkAddRequest);
+    LinkCreateVO addShortLinkFormWeb(LinkAddRequest linkAddRequest);
 
     Page<LinkVO> getLinkVOPage(LinkQueryRequest linkQueryRequest, String nickName);
 

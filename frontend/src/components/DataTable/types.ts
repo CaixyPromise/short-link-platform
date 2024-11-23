@@ -40,11 +40,13 @@ export type DateTableColumnProps<T> = {
     searchType?: DataTableFieldType
     searchRender?: (form: any, fieldProps: any) => ReactNode
     sorter?: boolean
-    toolTip?: string | ReactNode
+    toolTip?: string | ReactNode | React.JSX.Element
     enumMap?: Record<string, {
         text: string
         status?: BreathingDotStatus
     }>
+    className?: string;
+    align?: 'left' | 'center' | 'right'
 }
 export type DataTableRequestAsyncFunction<T> = (
     params: {
