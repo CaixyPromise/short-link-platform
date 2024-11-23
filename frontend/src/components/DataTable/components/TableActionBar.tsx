@@ -77,9 +77,9 @@ export const TableActionBar: React.FC<TableActionBarProps> = ({
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                        {displayColumns.map(column => (
+                        {displayColumns.map((column, index) => (
                             <DropdownMenuCheckboxItem
-                                key={column.dataIndex as string}
+                                key={index}
                                 checked={visibleColumns.includes(column.dataIndex as string)}
                                 onCheckedChange={() => toggleColumn(column.dataIndex as string)}
                             >

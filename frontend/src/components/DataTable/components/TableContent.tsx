@@ -23,6 +23,7 @@ import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
 import BreathingDot from "@/components/BreathingDot";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import CopyableText from "@/components/CopyableText";
+import {cn} from "@/lib/utils";
 
 export const TableContent: React.FC = () =>
 {
@@ -187,7 +188,16 @@ export const TableContent: React.FC = () =>
                                             visibleColumns.includes(column.dataIndex as string)
                                         )
                                         .map(column => (
-                                            <TableCell key={column.dataIndex as string}>
+                                            <TableCell
+                                                key={column.dataIndex as string}
+                                                className={cn(
+                                                    column.className, // 自定义样式
+                                                    {
+                                                        "text-left": column.align === "left",
+                                                        "text-center": column.align === "center",
+                                                        "text-right": column.align === "right",
+                                                    }
+                                                )}>
                                                 {renderCellContent(column, item, index)}
                                             </TableCell>
                                         ))}

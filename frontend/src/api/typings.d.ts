@@ -298,7 +298,8 @@ declare namespace API {
     createdType: number;
     linkName: string;
     validDateType: number;
-    validDate?: string;
+    validDateStart?: string;
+    validDateEnd?: string;
     describe?: string;
   };
 
@@ -734,7 +735,8 @@ declare namespace API {
     enableStatus?: number;
     createdType?: number;
     validDateType?: number;
-    validDate?: string;
+    validDateStart?: string;
+    validDateEnd?: string;
     description?: string;
     totalPv?: number;
     totalUv?: number;
