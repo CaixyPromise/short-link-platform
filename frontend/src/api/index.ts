@@ -18,7 +18,8 @@ import * as fileController from './fileController';
 import * as emailController from './emailController';
 import * as authController from './authController';
 import * as adminController from './adminController';
-import * as wxMpController from './wxMpController';
+import * as linkRedirectController from './linkRedirectController';
+import * as notFoundController from './notFoundController';
 import * as captchaController from './captchaController';
 export default {
   userController,
@@ -37,6 +38,7 @@ export default {
   emailController,
   authController,
   adminController,
-  wxMpController,
+  linkRedirectController,
+  notFoundController,
   captchaController,
 };

@@ -42,7 +42,7 @@
     <select id="findShortLinkBySuffix" resultType="com.caixy.shortlink.model.entity.Link">
         SELECT
             <include refid="Base_Column_List"/>
-        FROM link
+        FROM t_link
             WHERE
                 short_uri = #{suffix}
                 AND is_deleted = 0

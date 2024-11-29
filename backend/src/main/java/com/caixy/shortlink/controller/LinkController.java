@@ -8,10 +8,7 @@ import com.caixy.shortlink.common.ErrorCode;
 import com.caixy.shortlink.common.ResultUtils;
 import com.caixy.shortlink.exception.BusinessException;
 import com.caixy.shortlink.exception.ThrowUtils;
-import com.caixy.shortlink.model.dto.link.LinkAddRequest;
-import com.caixy.shortlink.model.dto.link.LinkEditRequest;
-import com.caixy.shortlink.model.dto.link.LinkQueryRequest;
-import com.caixy.shortlink.model.dto.link.LinkUpdateRequest;
+import com.caixy.shortlink.model.dto.link.*;
 import com.caixy.shortlink.model.entity.Link;
 import com.caixy.shortlink.model.enums.UserRoleEnum;
 import com.caixy.shortlink.model.vo.link.LinkCreateVO;
@@ -43,7 +40,6 @@ public class LinkController
     private final LinkService linkService;
 
     private final AuthManager authManager;
-
     // region 增删改查
 
     /**
@@ -58,6 +54,31 @@ public class LinkController
     {
         authManager.checkLogin();
         return ResultUtils.success(linkService.addShortLinkFormWeb(linkAddRequest));
+    }
+
+    @PostMapping("/update/status/{groupId}/{linkId}/{status}")
+    public Result<Boolean> updateLinkStatus(@PathVariable("groupId") String groupId,
+                                            @PathVariable("linkId") Long linkId,
+                                            @PathVariable("status") Integer status)
+    {
+        // 检查linkId合法性
+        if (linkId == null || linkId < 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 获取用户信息，同时检查身份
+        UserVO loginUser = authManager.getLoginUser();
+        return ResultUtils.success(linkService.toggleLinkStatus(linkId, groupId, loginUser, status));
+    }
+
+    @PostMapping("/update/validDate")
+    public Result<Boolean> updateLinkValidDate(@RequestBody LinkUpdateValidDateRequest linkUpdateValidDateRequest) {
+        // 检查linkId合法性
+        if (linkUpdateValidDateRequest == null || linkUpdateValidDateRequest.getLinkId() < 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 获取用户信息，同时检查身份
+        UserVO loginUser = authManager.getLoginUser();
+        return ResultUtils.success(linkService.updateLinkValidDate(linkUpdateValidDateRequest, loginUser));
     }
 
     /**

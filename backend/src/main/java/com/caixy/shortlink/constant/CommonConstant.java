@@ -6,6 +6,23 @@ package com.caixy.shortlink.constant;
 public interface CommonConstant
 {
     /**
+     * 软删除符号(未删除)
+     */
+    Integer NOT_DELETE_FLAG = 0;
+    /**
+     * 软删除符号(已删除)
+     */
+    Integer DELETE_FLAG = 1;
+
+    /**
+     * 启用状态(启用)
+     */
+    Integer ENABLE_STATUS = 0;
+    /**
+     * 未启用状态
+     */
+    Integer DISABLE_STATUS = 1;
+    /**
      * UTF-8 字符集
      */
     String UTF8 = "UTF-8";

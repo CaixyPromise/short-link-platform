@@ -50,12 +50,10 @@ public class LinkAddRequest implements Serializable
     /**
      * 有效期-开始时间
      */
-//    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date validDateStart;
     /**
      * 有效期-结束时间
      */
-//    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date validDateEnd;
 
     /**

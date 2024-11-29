@@ -20,13 +20,6 @@ declare namespace API {
     uuid?: string;
   };
 
-  type checkParams = {
-    timestamp: string;
-    nonce: string;
-    signature: string;
-    echostr: string;
-  };
-
   type DeleteRequest = {
     id?: number;
   };
@@ -295,7 +288,6 @@ declare namespace API {
   type LinkAddRequest = {
     originUrl: string;
     gid: string;
-    createdType: number;
     linkName: string;
     validDateType: number;
     validDateStart?: string;
@@ -722,6 +714,14 @@ declare namespace API {
     tags?: string[];
   };
 
+  type LinkUpdateValidDateRequest = {
+    validDateType: number;
+    validDateStart?: string;
+    validDateEnd?: string;
+    groupId?: string;
+    linkId?: number;
+  };
+
   type LinkVO = {
     id?: number;
     domain?: string;
@@ -1086,6 +1086,10 @@ declare namespace API {
     pages?: number;
   };
 
+  type redirectUrlParams = {
+    shortUri: string;
+  };
+
   type ResultAboutMeVO = {
     code?: number;
     data?: AboutMeVO;
@@ -1372,6 +1376,12 @@ declare namespace API {
     toEmail?: string;
     scenes?: number;
     extractParams?: Record<string, any>;
+  };
+
+  type updateLinkStatusParams = {
+    groupId: string;
+    linkId: number;
+    status: number;
   };
 
   type uploadFileParams = {

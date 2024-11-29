@@ -4,7 +4,7 @@ import DataTable from "@/components/DataTable";
 import {DateTableColumnProps, RequestData, SortOrder} from "@/components/DataTable/types";
 import {ValidDateEnum} from "@/enums/ValidDateEnum";
 import {DateUtils} from "@/lib/DateUtils";
-import {listLinkVoByPage} from "@/api/linkController";
+import {listLinkVoByPage, updateLinkStatus} from "@/api/linkController";
 import BreathingDot from "@/components/BreathingDot";
 import {Condition, Conditional} from "@/components/Conditional";
 import React, {useEffect, useState} from "react";
@@ -14,9 +14,9 @@ import {Plus} from "lucide-react";
 import ShortLinkQRCode from "@/app/link/components/ShortLinkQRCode";
 import {AddShortLinkForm} from "@/app/link/components/AddShortLinkForm";
 import {default_operation_button, TableActionBar} from "@/components/DataTable/components/TableActionBar";
-import {useParams, usePathname, useRouter} from 'next/navigation';
-import {useDataTable} from "@/components/DataTable/DataTableContext";
-import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
+import {useParams, useRouter} from 'next/navigation';
+import {StatusIndicator} from "@/app/link/components/StatusIndicator";
+import {ValidityPeriodCell} from "@/app/link/components/ValidityCell";
 
 
 const MetricItem: React.FC<{
@@ -30,7 +30,11 @@ const MetricItem: React.FC<{
         </div>
     );
 };
-const columns: Array<DateTableColumnProps<API.LinkVO>> = (onShare: (record: API.LinkVO) => void) => [
+const columns: Array<DateTableColumnProps<API.LinkVO>> = (
+    onShare: (record: API.LinkVO) => void,
+    groupId: string,
+    onClickValidTimeCell: (record: API.LinkVO) => void
+) => ([
     {
         title: "短链id",
         dataIndex: "id"
@@ -49,16 +53,20 @@ const columns: Array<DateTableColumnProps<API.LinkVO>> = (onShare: (record: API.
         dataIndex: "fullShortUrl",
         copyable: true,
         render: (_, record) => {
+            const linkText = process.env.NODE_ENV === "development"
+                ? record.fullShortUrl.replace(/(https?:\/\/[^/]+)(\/.*)?/, "$1/api$2")
+                : record.fullShortUrl;
+
             return (
                 <div className="flex-col space-y-2">
                     <div className="flex items-center gap-2">
                         <span>短链地址: </span>
-                        <CopyableText text={record.fullShortUrl}/>
-                        <ShortLinkQRCode url={record.fullShortUrl} name={record.linkName}/>
+                        <CopyableText type="link" text={linkText}/>
+                        <ShortLinkQRCode url={linkText} name={record.linkName}/>
                     </div>
                     <div className="flex items-center gap-2">
                         <span>原始链接: </span>
-                        <CopyableText text={record.originUrl}/>
+                        <CopyableText type="link" text={record.originUrl}/>
                     </div>
                 </div>
             )
@@ -77,6 +85,40 @@ const columns: Array<DateTableColumnProps<API.LinkVO>> = (onShare: (record: API.
                 text: "未启用",
                 status: "error"
             }
+        },
+        render: (_, record) => {
+            return (
+                <StatusIndicator
+                    enabled={record.enableStatus === 0}
+                    onToggle={async (enabled) => {
+                        try {
+                            const res = await updateLinkStatus({
+                                linkId: record.id,
+                                groupId: groupId,
+                                status: enabled ? 0 : 1
+                            })
+                            if (res.code === 0) {
+                                return {
+                                    success: true,
+                                    newValue: enabled,
+                                    message: `${enabled ? '启用' : '禁用'}成功`
+                                }
+                            }
+                            return {
+                                success: false,
+                                newValue: !enabled,
+                                message: res.message || '操作失败'
+                            }
+                        } catch (error) {
+                            return {
+                                success: false,
+                                newValue: !enabled,
+                                message: '网络错误，请稍后重试'
+                            }
+                        }
+                    }}
+                />
+            )
         }
     },
     {
@@ -99,7 +141,11 @@ const columns: Array<DateTableColumnProps<API.LinkVO>> = (onShare: (record: API.
         className: "text-center align-middle",
         render: (text, record) => {
             return (
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-center cursor-pointer transition-all duration-200 hover:bg-accent/10  rounded-md p-2 hover:ring-1"
+                     onClick={(e) => {
+                    e.stopPropagation()
+                    onClickValidTimeCell(record)
+                }}>
                     <Conditional>
                         <Condition.Switch value={record.validDateType}>
                             <Condition.Case case={ValidDateEnum.PERMANENT}>
@@ -168,13 +214,15 @@ const columns: Array<DateTableColumnProps<API.LinkVO>> = (onShare: (record: API.
             )
         }
     },
-]
+]);
 
 export default function LinkTablePage() {
     const [qrCodeVisible, setQrCodeVisible] = useState<boolean>(false);
     const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
     const [qrCodeName, setQrCodeName] = useState<string>('');
     const [shortModalVisible, setShortModalVisible] = useState<boolean>(false);
+    const [validFormModalVisible, setValidFormModalVisible] = useState<boolean>(false);
+    const [currentRow, setCurrentRow] = useState<API.LinkVO | null>(null);
 
     const params = useParams();
     const {gid: groupId} = params;
@@ -204,17 +252,23 @@ export default function LinkTablePage() {
         setQrCodeVisible(true);
     }
 
+    // 点击选项时更新当前选项并显示弹窗
+    const onClickValidTimeCell = (record: API.LinkVO) => {
+        setCurrentRow(record); // 更新当前行
+        setValidFormModalVisible(true); // 打开弹窗
+    };
 
-    const handleShortLinkModalVisible = (openState: boolean) => {
-        setShortModalVisible(openState);
-    }
-
+    // 关闭弹窗时重置状态
+    const closeModal = () => {
+        setValidFormModalVisible(false);
+        setCurrentRow(null); // 重置当前行
+    };
 
     return (
         <PageContainer>
             <DataTable<API.LinkVO>
                 title="短链列表"
-                columns={columns(createShareQrCode)}
+                columns={columns(createShareQrCode, groupId, onClickValidTimeCell)}
                 request={fetchLink}
                 components={{
                     SearchArea: null,
@@ -235,6 +289,11 @@ export default function LinkTablePage() {
                 }}
             />
             <AddShortLinkForm open={shortModalVisible} setOpen={setShortModalVisible} groupId={groupId}/>
+            <ValidityPeriodCell
+                record={currentRow}
+                open={validFormModalVisible}
+                onClose={closeModal} // 弹窗关闭回调
+            />
             {/*<ShortLinkQRCode name={qrCodeName} url={qrCodeUrl}/>*/}
         </PageContainer>
     )

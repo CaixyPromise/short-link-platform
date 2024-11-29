@@ -1,11 +1,10 @@
 "use client"
 import React, {useRef, useState} from "react";
-import {Dialog, DialogContent, DialogTitle} from "@/components/ui/dialog";
 import {QRCodeCanvas} from "qrcode.react";
 import {Button} from "@/components/ui/button";
 import {DownloadUtil} from "@/lib/DownloadUtil";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
-import {ScanQrCode} from "lucide-react";
+import {ScanFace} from "lucide-react";
 
 const ShortLinkQRCode: React.FC<{
     url: string;
@@ -39,8 +38,8 @@ const ShortLinkQRCode: React.FC<{
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="cursor-pointer hover:text-blue-300">
-                    <ScanQrCode/>
+                <Button variant="ghost" size="icon" className="mr-0 cursor-pointer hover:text-blue-300">
+                    <ScanFace/>
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-80" side="right">

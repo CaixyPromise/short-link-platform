@@ -240,3 +240,4 @@ management:
 short-link:
   default:
     domain: https://short.caixyowo.cn
+    notFound-uri: ${server.servlet.context-path}/page/notFound

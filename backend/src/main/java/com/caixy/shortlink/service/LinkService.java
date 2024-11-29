@@ -4,10 +4,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.caixy.shortlink.model.dto.link.LinkAddRequest;
 import com.caixy.shortlink.model.dto.link.LinkQueryRequest;
+import com.caixy.shortlink.model.dto.link.LinkUpdateValidDateRequest;
 import com.caixy.shortlink.model.entity.Link;
 import com.caixy.shortlink.model.vo.link.LinkCreateVO;
 import com.caixy.shortlink.model.vo.link.LinkVO;
 
+import com.caixy.shortlink.model.vo.user.UserVO;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
@@ -15,6 +17,8 @@ import jakarta.servlet.http.HttpServletRequest;
  * @author: CAIXYPROMISE
 */
 public interface LinkService extends IService<Link> {
+
+    String redirectShortLink(String shortUrl, String shortUri);
 
     /**
      * 校验数据
@@ -37,4 +41,7 @@ public interface LinkService extends IService<Link> {
      */
     LinkVO getLinkVO(Link link, HttpServletRequest request);
 
+    Boolean toggleLinkStatus(Long linkId, String groupId, UserVO loginUser, Integer status);
+
+    Boolean updateLinkValidDate(LinkUpdateValidDateRequest linkUpdateValidDateRequest, UserVO userVO);
 }

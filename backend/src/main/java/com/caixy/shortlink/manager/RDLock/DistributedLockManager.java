@@ -96,6 +96,7 @@ public class DistributedLockManager
         errorMessage = StringUtils.isNotBlank(errorMessage) ? errorMessage : errorCode.getMessage();
         try
         {
+            log.debug("Attempting to acquire lock: {}", lockName);
             if (rLock.tryLock(waitTime, leaseTime, unit))
             {
                 runnable.run();
@@ -122,7 +123,7 @@ public class DistributedLockManager
 
     private void outUnlockLog(long id)
     {
-        log.error("unLock: {}", id);
+        log.info("unLock: {}", id);
     }
 
     public <T> T redissonDistributedLocks(RDLockKeyEnum rdLockKeyEnum,

@@ -187,6 +187,18 @@ public class RedisUtils
         setObject(key, value, keyEnum.getExpire());
     }
 
+    public void setObject(BaseCacheableEnum keyEnum, Object value, Long expire, Object... items)
+    {
+        String key = keyEnum.generateKey(items);
+        if (expire != null && expire > 0)
+        {
+            setObject(key, value, expire);
+            return;
+        }
+        // 如果过期时间为null和-1，则直接走默认时间配置（redis要求，过期时间必须大于0，如果需要永久只需要设置为null就行）
+        setObject(keyEnum, value, items);
+    }
+
     public void setObject(String key, Object value, Long expire)
     {
         setString(key, JsonUtils.toJsonString(value), expire);
@@ -302,7 +314,16 @@ public class RedisUtils
 
     public void setString(String key, String value, Long expire)
     {
-        stringRedisTemplate.opsForValue().set(key, value, expire, TimeUnit.SECONDS);
+        if (expire > 0)
+        {
+            // 设置带过期时间的键值
+            stringRedisTemplate.opsForValue().set(key, value, expire, TimeUnit.SECONDS);
+        }
+        else
+        {
+            // 设置永久有效的键值
+            stringRedisTemplate.opsForValue().set(key, value);
+        }
     }
 
 

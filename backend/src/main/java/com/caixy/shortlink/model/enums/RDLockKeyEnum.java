@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 public enum RDLockKeyEnum
 {
     USER_LOCK("user_lock", 10, 10, TimeUnit.SECONDS),
+    SHORT_LINK_LOCK("short_link_lock", 10, 10, TimeUnit.SECONDS),
 
     ;
     private final String lockName;

@@ -1,6 +1,6 @@
 "use client"
 
-import { addDays, format, isBefore, startOfToday } from "date-fns"
+import { format, isBefore, startOfToday } from "date-fns"
 import zhCN from "date-fns/locale/zh-CN"
 import { CalendarIcon } from 'lucide-react'
 import { DateRange } from "react-day-picker"
@@ -29,12 +29,15 @@ interface TimeSelection {
     seconds: string
 }
 
-interface DateTimeRange extends DateRange {
+interface DateTimeRange {
+    from?: Date
+    to?: Date
     fromTime?: TimeSelection
     toTime?: TimeSelection
     fromDateTime?: Date
     toDateTime?: Date
 }
+
 
 
 interface DateTimeRangePickerProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -48,14 +51,15 @@ export default function DateTimeRangePicker({
                                                 onChange,
                                                 disablePast = false,
                                             }: DateTimeRangePickerProps) {
-    const dateTime = value || {
-        from: undefined,
-        to: undefined,
-        fromTime: { hours: "00", minutes: "00", seconds: "00" },
-        toTime: { hours: "00", minutes: "00", seconds: "00" },
-        fromDateTime: undefined,
-        toDateTime: undefined,
+    const dateTime: DateTimeRange = {
+        from: value?.from,
+        to: value?.to,
+        fromTime: value?.fromTime || { hours: "00", minutes: "00", seconds: "00" },
+        toTime: value?.toTime || { hours: "00", minutes: "00", seconds: "00" },
+        fromDateTime: value?.fromDateTime,
+        toDateTime: value?.toDateTime,
     }
+
 
 
     const updateDateTime = (newDateTime: DateTimeRange) => {
@@ -94,10 +98,12 @@ export default function DateTimeRangePicker({
     const onDateSelect = (range: DateRange | undefined) => {
         const newDateTime = {
             ...dateTime,
-            ...range,
+            from: range?.from,
+            to: range?.to,
         }
         updateDateTime(newDateTime)
     }
+
 
     const TimeSelector = ({ type, className }: { type: 'fromTime' | 'toTime', className?: string }) => {
         const timeValue = dateTime[type] || { hours: "00", minutes: "00", seconds: "00" }
@@ -241,7 +247,7 @@ export default function DateTimeRangePicker({
                 <PopoverTrigger asChild>
                     <Button
                         id="date"
-                        variant={"outline"}
+                        variant="outline"
                         className={cn(
                             "w-full justify-start text-left font-normal truncate overflow-hidden",
                             !dateTime && "text-muted-foreground"
@@ -268,13 +274,14 @@ export default function DateTimeRangePicker({
                             initialFocus
                             mode="range"
                             defaultMonth={dateTime?.from}
-                            selected={dateTime}
+                            selected={dateTime.from || dateTime.to ? { from: dateTime.from, to: dateTime.to } : undefined}
                             onSelect={onDateSelect}
                             numberOfMonths={2}
                             className="border-b"
                             locale={zhCN}
                             disabled={disablePast ? (date) => isBefore(date, startOfToday()) : undefined}
                         />
+
                         <div className="flex justify-between p-3 bg-muted/5">
                             <TimeSelector type="fromTime" />
                             <TimeSelector type="toTime" />

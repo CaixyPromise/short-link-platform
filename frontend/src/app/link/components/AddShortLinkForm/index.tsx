@@ -31,6 +31,7 @@ import {formSchema, FormValues} from "./schema"
 import DateTimeRangePicker from "@/components/DateTimeRangePicker";
 import {addLink} from "@/api/linkController";
 import {useToast} from "@/hooks/use-toast";
+import {ValidDateEnum} from "@/enums/ValidDateEnum";
 
 
 interface AddShortLinkFormProps {
@@ -56,7 +57,7 @@ export function AddShortLinkForm({open, setOpen, groupId}: AddShortLinkFormProps
             gid: groupId,
         }
         console.log(data)
-        if (payload.validDateType === 1) {
+        if (payload.validDateType === ValidDateEnum.SPECIFIED) {
             payload.validDateStart = data.validDateRange?.fromDateTime;
             payload.validDateEnd = data.validDateRange?.toDateTime;
         }

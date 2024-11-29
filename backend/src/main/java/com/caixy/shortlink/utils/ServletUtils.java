@@ -1,6 +1,7 @@
 package com.caixy.shortlink.utils;
 
 
+import lombok.SneakyThrows;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -283,7 +284,8 @@ public class ServletUtils
      * @param location 重定向的 URL
      * @throws IOException 如果发生 I/O 异常
      */
-    public static void sendRedirect(HttpServletResponse response, String location) throws IOException
+    @SneakyThrows
+    public static void sendRedirect(HttpServletResponse response, String location)
     {
         response.sendRedirect(location);
     }

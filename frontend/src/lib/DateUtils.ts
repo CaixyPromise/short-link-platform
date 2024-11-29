@@ -125,6 +125,9 @@ export class DateUtils {
         minutes: string;
         seconds: string;
     }): Date {
+        if (isNaN(dateObject.getTime())) {
+            throw new Error("Invalid dateObject");
+        }
         const [hours, minutes, seconds] = [
             parseInt(time.hours, 10),
             parseInt(time.minutes, 10),

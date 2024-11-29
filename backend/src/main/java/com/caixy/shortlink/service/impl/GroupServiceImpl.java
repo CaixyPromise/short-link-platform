@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.caixy.shortlink.common.Constant;
 import com.caixy.shortlink.common.ErrorCode;
 import com.caixy.shortlink.constant.CommonConstant;
 import com.caixy.shortlink.exception.BusinessException;
@@ -128,7 +127,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
         queryWrapper.eq(Group::getUsername, userVO.getNickName());
         queryWrapper.orderByDesc(Group::getSortOrder);
         queryWrapper.orderByDesc(Group::getCreateTime);
-        queryWrapper.eq(Group::getIsDeleted, Constant.NOT_DELETE_FLAG);
+        queryWrapper.eq(Group::getIsDeleted, CommonConstant.NOT_DELETE_FLAG);
         // 分页查询
         Page<Group> page = page(new Page<>(current, size), queryWrapper);
         return GroupConvertor.INSTANCE.copyVOPage(page);
@@ -241,7 +240,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
         LambdaQueryWrapper<Group> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Group::getName, groupName);
         queryWrapper.eq(Group::getUsername, nickName);
-        queryWrapper.eq(Group::getIsDeleted, Constant.NOT_DELETE_FLAG);
+        queryWrapper.eq(Group::getIsDeleted, CommonConstant.NOT_DELETE_FLAG);
         if (this.count(queryWrapper) > 0)
         {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "分组名称已存在");
