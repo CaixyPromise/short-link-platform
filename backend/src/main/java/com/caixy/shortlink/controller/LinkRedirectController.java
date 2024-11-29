@@ -23,7 +23,7 @@ import java.util.Optional;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/")
+@RequestMapping("/s")
 public class LinkRedirectController
 {
     private final LinkService linkService;

@@ -11,6 +11,9 @@ import com.caixy.shortlink.model.vo.link.LinkVO;
 
 import com.caixy.shortlink.model.vo.user.UserVO;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * 短链接信息服务
@@ -44,4 +47,7 @@ public interface LinkService extends IService<Link> {
     Boolean toggleLinkStatus(Long linkId, String groupId, UserVO loginUser, Integer status);
 
     Boolean updateLinkValidDate(LinkUpdateValidDateRequest linkUpdateValidDateRequest, UserVO userVO);
+
+    @Transactional
+    Boolean moveLinksToGroup(String groupId, String newGroupId, List<Long> linkIds, UserVO loginUser);
 }

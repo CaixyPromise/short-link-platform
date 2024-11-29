@@ -27,7 +27,6 @@ const BasicLayoutPage: React.FC<BasicLayoutProps> = ({ children }) => {
     const pathname = usePathname();
     const navigation = navigationMenu.items.find(item => item.path === pathname);
 
-    console.log("navigation: ", navigation)
     return (
         <Conditional>
             <Condition.When test={navigation?.layout != false}>

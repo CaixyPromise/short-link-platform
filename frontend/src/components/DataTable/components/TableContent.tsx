@@ -182,14 +182,14 @@ export const TableContent: React.FC = () =>
                         </TableHeader>
                         <TableBody>
                             {data.map((item: any, index: number) => (
-                                <TableRow key={item.id || index}>
-                                    {columns
+                                <TableRow key={item.id || `row-${index}`}>
+                                {columns
                                         .filter(column =>
                                             visibleColumns.includes(column.dataIndex as string)
                                         )
                                         .map(column => (
                                             <TableCell
-                                                key={column.dataIndex as string}
+                                                key={`${item.id || index}-${column.title}-${column.dataIndex}`}
                                                 className={cn(
                                                     column.className, // 自定义样式
                                                     {

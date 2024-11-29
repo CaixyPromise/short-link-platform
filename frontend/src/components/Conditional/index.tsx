@@ -120,7 +120,7 @@ const Conditional = <T,>({ value, children, strict = false }: ConditionalProps<T
         let hasMatched = false;
         const output: ReactNode[] = [];
 
-        React.Children.forEach(children, child => {
+        React.Children.forEach(children, (child, index) => {
             if (!isValidElement(child)) {
                 return;
             }
@@ -143,7 +143,7 @@ const Conditional = <T,>({ value, children, strict = false }: ConditionalProps<T
                         hasMatched = true;
                         const whenOutput = processChildren(whenChildren);
                         if (whenOutput !== null) {
-                            output.push(whenOutput);
+                            output.push(<React.Fragment key={`When-${index}`}>{whenOutput}</React.Fragment>);
                         }
                     } else {
                         const elseNode = props.else || (elseChildren.length > 0 ? elseChildren[elseChildren.length - 1] : null);
@@ -151,7 +151,7 @@ const Conditional = <T,>({ value, children, strict = false }: ConditionalProps<T
                             hasMatched = true;
                             const elseOutput = processChildren(elseNode);
                             if (elseOutput !== null) {
-                                output.push(elseOutput);
+                                output.push(<React.Fragment key={`Else-${index}`}>{elseOutput}</React.Fragment>);
                             }
                         }
                     }
@@ -163,7 +163,7 @@ const Conditional = <T,>({ value, children, strict = false }: ConditionalProps<T
                     if (conditionResult) {
                         const notOutput = processChildren(props.children);
                         if (notOutput !== null) {
-                            output.push(notOutput);
+                            output.push(<React.Fragment key={`Not-${index}`}>{notOutput}</React.Fragment>);
                         }
                     }
                     break;
@@ -173,7 +173,7 @@ const Conditional = <T,>({ value, children, strict = false }: ConditionalProps<T
                     const switchValue = props.value !== undefined ? props.value : contextValue;
                     const switchOutput = processSwitch(props, switchValue);
                     if (switchOutput !== null) {
-                        output.push(switchOutput);
+                        output.push(<React.Fragment key={`Switch-${index}`}>{switchOutput}</React.Fragment>);
                     }
                     break;
                 }
@@ -209,7 +209,7 @@ const Conditional = <T,>({ value, children, strict = false }: ConditionalProps<T
         const elseChildren: ReactNode[] = [];
         let elseCount = 0;
 
-        React.Children.forEach(children, child => {
+        React.Children.forEach(children, (child, index) => {
             if (!isValidElement(child)) {
                 whenChildren.push(child);
                 return;
@@ -220,7 +220,11 @@ const Conditional = <T,>({ value, children, strict = false }: ConditionalProps<T
 
             if (displayName === 'Condition.Else') {
                 elseCount++;
-                elseChildren.push(props.children);
+                elseChildren.push(
+                    <React.Fragment key={`else-${index}`}>
+                        {props.children}
+                    </React.Fragment>
+                );
             } else {
                 whenChildren.push(child);
             }

@@ -68,13 +68,14 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
 
     /**
      * 添加组
+     * @return 返回组ID
      *
      * @author CAIXYPROMISE
      * @version 1.0
      * @version 2024/11/15 1:50
      */
     @Override
-    public boolean addGroup(GroupAddRequest groupAddRequest, UserVO userVO)
+    public String addGroup(GroupAddRequest groupAddRequest, UserVO userVO)
     {
         checkGroupNameExist(groupAddRequest.getGroupName(), userVO.getNickName());
         // 生成组标识符
@@ -90,7 +91,11 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
                            .username(userVO.getNickName())
                            .sortOrder(groupAddRequest.getSortOrder())
                            .build();
-        return this.save(group);
+        boolean saved = this.save(group);
+        if (!saved) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "添加分组失败");
+        }
+        return group.getGid();
     }
 
     /**

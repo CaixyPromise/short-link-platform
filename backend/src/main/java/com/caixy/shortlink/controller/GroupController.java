@@ -58,13 +58,12 @@ public class GroupController
      * @return
      */
     @PostMapping("/add")
-    public Result<Boolean> addGroup(@RequestBody @Valid GroupAddRequest groupAddRequest)
+    public Result<String> addGroup(@RequestBody @Valid GroupAddRequest groupAddRequest)
     {
         ThrowUtils.throwIf(groupAddRequest == null, ErrorCode.PARAMS_ERROR);
         UserVO loginUser = authManager.getLoginUser();
-        boolean result = groupService.addGroup(groupAddRequest, loginUser);
-        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-        return ResultUtils.success(true);
+        String result = groupService.addGroup(groupAddRequest, loginUser);
+        return ResultUtils.success(result);
     }
 
     /**

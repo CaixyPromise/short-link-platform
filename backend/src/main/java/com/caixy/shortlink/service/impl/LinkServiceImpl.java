@@ -377,14 +377,52 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
         // 2. 更新数据库
         return baseMapper.updateById(linkByGroupAndUser) > 0;
     }
+
+    /**
+     * 批量根据链接将其迁移分组
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @version 2024/11/29 14:18
+     */
+    @Transactional
+    @Override
+    public Boolean moveLinksToGroup(String groupId, String newGroupId, List<Long> linkIds, UserVO loginUser)
+    {
+
+        // 1. 检查新分组是否存在
+        Group newGroup = groupMapper.findGroupByGid(newGroupId);
+        if (newGroup == null || !newGroup.getUsername().equals(loginUser.getNickName())) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "分组不存在或没有操作权限");
+        }
+        // 1.1 检查原来的分组是否存在
+        Group originGroup = groupMapper.findGroupByGid(groupId);
+        if (originGroup == null || !originGroup.getUsername().equals(loginUser.getNickName())) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "分组不存在或没有操作权限");
+        }
+        // 2. 获取链接信息
+        LambdaQueryWrapper<Link> linkLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        linkLambdaQueryWrapper.eq(Link::getGid, groupId)
+                              .in(Link::getId, linkIds)
+                              .eq(Link::getIsDeleted, CommonConstant.NOT_DELETE_FLAG);
+        List<Link> linkList = list(linkLambdaQueryWrapper);
+        // 2.1 检查链接是否存在, 数量是否匹配
+        // tips: 这里不需要校验链接是不是操作人的，因为前面已经校验过分组信息了，分组与用户强绑定
+        if (linkList.isEmpty() || linkList.size() != linkIds.size()) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "链接不存在");
+        }
+        // 3. 修改分组
+        linkList.forEach(link -> link.setGid(newGroupId));
+        return this.updateBatchById(linkList);
+    }
     /**
      * 根据用户获取对应分组内对应id的链接信息
-     * 
+     *
      * @author CAIXYPROMISE
      * @version 1.0
      * @version 2024/11/29 3:06
      */
-    private Link getLinkByGroupAndUser(String groupId, Long linkId, UserVO loginUser) {
+    private Link getLinkByGroupAndUser(String groupId, Long linkId, UserVO loginUser)
+    {
         // 2. 先查询出链接的所在分组，并且检查权限
         Group group = groupMapper.findGroupByGid(groupId);
         // 2.1 检查分组是否存在
@@ -412,7 +450,7 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
 
     /**
      * 检查链接是否在无效链接内
-     * 
+     *
      * @author CAIXYPROMISE
      * @version 1.0
      * @version 2024/11/29 3:04
@@ -422,10 +460,10 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
         String urlInCache = redisUtils.getString(RedisKeyEnum.INVALID_SHORT_LINK, url);
         return StringUtils.isNotBlank(urlInCache);
     }
-    
+
     /**
      * 设置无效链接
-     * 
+     *
      * @author CAIXYPROMISE
      * @version 1.0
      * @version 2024/11/29 3:03

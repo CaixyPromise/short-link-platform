@@ -17,6 +17,9 @@ import {default_operation_button, TableActionBar} from "@/components/DataTable/c
 import {useParams, useRouter} from 'next/navigation';
 import {StatusIndicator} from "@/app/link/components/StatusIndicator";
 import {ValidityPeriodCell} from "@/app/link/components/ValidityCell";
+import {useAppDispatch, useAppSelector} from "@/stores/hooks";
+import {onChangeGroupClick, updateCurrentGroupByGid} from "@/stores/Group";
+import UpdateGroupModal from "@/app/link/components/UpdateGroupModal";
 
 
 const MetricItem: React.FC<{
@@ -33,7 +36,8 @@ const MetricItem: React.FC<{
 const columns: Array<DateTableColumnProps<API.LinkVO>> = (
     onShare: (record: API.LinkVO) => void,
     groupId: string,
-    onClickValidTimeCell: (record: API.LinkVO) => void
+    onClickValidTimeCell: (record: API.LinkVO) => void,
+    onClickUpdateGroupModal: (record: API.LinkVO) => void
 ) => ([
     {
         title: "短链id",
@@ -54,7 +58,7 @@ const columns: Array<DateTableColumnProps<API.LinkVO>> = (
         copyable: true,
         render: (_, record) => {
             const linkText = process.env.NODE_ENV === "development"
-                ? record.fullShortUrl.replace(/(https?:\/\/[^/]+)(\/.*)?/, "$1/api$2")
+                ? record.fullShortUrl.replace(/(https?:\/\/[^/]+)(\/.*)?/, "$1/api/s$2")
                 : record.fullShortUrl;
 
             return (
@@ -205,10 +209,10 @@ const columns: Array<DateTableColumnProps<API.LinkVO>> = (
     },
     {
         title: "操作",
-        render: () => {
+        render: (_, record) => {
             return (
                 <div className="flex gap-1">
-                    <Button variant="link">编辑</Button>
+                    <Button variant="link" onClick={()=>onClickUpdateGroupModal(record)}>更换分组</Button>
                     <Button variant="link" className="text-red-600">删除</Button>
                 </div>
             )
@@ -223,22 +227,33 @@ export default function LinkTablePage() {
     const [shortModalVisible, setShortModalVisible] = useState<boolean>(false);
     const [validFormModalVisible, setValidFormModalVisible] = useState<boolean>(false);
     const [currentRow, setCurrentRow] = useState<API.LinkVO | null>(null);
-
+    const [ updateGroupModalVisible ,setUpdateGroupModalVisible] = useState<boolean>(false)
     const params = useParams();
     const {gid: groupId} = params;
     const router = useRouter();
+    const dispatch = useAppDispatch();
+    const currentGroup = useAppSelector(state => state.Group);
 
     useEffect(() => {
         if (!groupId) {
             router.replace('/');
+            return;
         }
-    }, [groupId]);
+        // 只在 groupId 初始化时检查和更新 currentGroup
+        if (!currentGroup.currentGroupId || currentGroup.currentGroupId !== groupId) {
+            dispatch(updateCurrentGroupByGid(groupId));
+        }
+    }, [groupId, dispatch, router]);
+
 
     const fetchLink = async (params: any,
                              sort: Record<string, SortOrder>,
                              filter: Record<string, (string | number)[] | null>
     ): Promise<Partial<RequestData<API.LinkVO[]>>> => {
-        const {data, code} = await listLinkVoByPage(params);
+        const {data, code} = await listLinkVoByPage({
+            gid: groupId,
+            ...params
+        });
         return {
             success: code === 0,
             data: data?.records || [],
@@ -259,16 +274,28 @@ export default function LinkTablePage() {
     };
 
     // 关闭弹窗时重置状态
-    const closeModal = () => {
+    const closeValidDateModal = () => {
         setValidFormModalVisible(false);
         setCurrentRow(null); // 重置当前行
     };
 
+    const closeUpdateGroupModal = () => {
+        setUpdateGroupModalVisible(false);
+        setCurrentRow(null); // 重置当前行
+    }
+
+    const onClickUpdateGroupModal= (record: API.LinkVO) => {
+        setUpdateGroupModalVisible(true);
+        setCurrentRow(record); // 设置当前行
+    }
+
+
+
     return (
         <PageContainer>
             <DataTable<API.LinkVO>
-                title="短链列表"
-                columns={columns(createShareQrCode, groupId, onClickValidTimeCell)}
+                title={`${currentGroup?.currentGroupName}-短链列表`}
+                columns={columns(createShareQrCode, groupId, onClickValidTimeCell, onClickUpdateGroupModal)}
                 request={fetchLink}
                 components={{
                     SearchArea: null,
@@ -292,7 +319,13 @@ export default function LinkTablePage() {
             <ValidityPeriodCell
                 record={currentRow}
                 open={validFormModalVisible}
-                onClose={closeModal} // 弹窗关闭回调
+                onClose={closeValidDateModal} // 弹窗关闭回调
+            />
+            <UpdateGroupModal
+                linkId={currentRow?.id}
+                open={updateGroupModalVisible}
+                onOpenChange={closeUpdateGroupModal}
+                originGroupId={groupId}
             />
             {/*<ShortLinkQRCode name={qrCodeName} url={qrCodeUrl}/>*/}
         </PageContainer>

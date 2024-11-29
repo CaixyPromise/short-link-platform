@@ -26,6 +26,8 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.List;
+
 /**
  * 短链接信息接口
  *
@@ -79,6 +81,28 @@ public class LinkController
         // 获取用户信息，同时检查身份
         UserVO loginUser = authManager.getLoginUser();
         return ResultUtils.success(linkService.updateLinkValidDate(linkUpdateValidDateRequest, loginUser));
+    }
+
+    /**
+     * 更新链接分组信息
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @version 2024/11/29 17:30
+     */
+    @PostMapping("/update/link/group")
+    public Result<Boolean> updateLinkGroup(@RequestBody LinkUpdateGroupRequest linkUpdateGroupRequest)
+    {
+        String groupId = linkUpdateGroupRequest.getGroupId();
+        List<Long> linkIds = linkUpdateGroupRequest.getLinkIds();
+        String newGroupId = linkUpdateGroupRequest.getNewGroupId();
+        // 检查linkId合法性
+        if (newGroupId.equals(groupId) || linkIds.isEmpty())
+        {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "分组未改变，无需更改");
+        }
+        UserVO loginUser = authManager.getLoginUser();
+        return ResultUtils.success(linkService.moveLinksToGroup(groupId, newGroupId, linkIds, loginUser));
     }
 
     /**
@@ -175,10 +199,8 @@ public class LinkController
      * @return
      */
     @PostMapping("/list/page/vo")
-    public Result<Page<LinkVO>> listLinkVOByPage(@RequestBody LinkQueryRequest linkQueryRequest,
-                                                 HttpServletRequest request)
+    public Result<Page<LinkVO>> listLinkVOByPage(@RequestBody LinkQueryRequest linkQueryRequest)
     {
-        long current = linkQueryRequest.getCurrent();
         long size = linkQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);

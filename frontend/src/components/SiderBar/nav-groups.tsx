@@ -32,6 +32,9 @@ import {Skeleton} from "@/components/ui/skeleton";
 import {LoginUser} from "@/app/typing";
 import {Condition, Conditional} from "@/components/Conditional";
 import Link from "next/link";
+import {useAppDispatch} from "@/stores/hooks";
+import {onChangeGroupClick, setGroupItem} from "@/stores/Group";
+import {GroupAddDialog} from "@/components/SiderBar/AddGroupFormModal";
 
 
 // 封装组件
@@ -41,31 +44,26 @@ export function NavGroups({userInfo} : {
     const { isMobile } = useSidebar()
     const [queryGroupItemHandler, isLoading] = useAsyncHandler<API.GroupItemVO[]>();
     const [groupItems, setGroupItems] = useState<Array<API.GroupItemVO>>([])
+    const dispatch = useAppDispatch();
     const queryGroupItems = async () => {
         const groupItemResult = await queryGroupItemHandler(async () => {
             const {data} = await getMyGroupItems();
             return data || [];
         }, [])
         setGroupItems(groupItemResult)
+        dispatch(setGroupItem(groupItemResult));
     }
     useEffect(()=> {
         queryGroupItems();
     }, [])
+    const handleGroupClick = (groupItem: API.GroupItemVO) => {
+        dispatch(onChangeGroupClick(groupItem));
+    }
     return (
         <SidebarGroup className="group-data-[collapsible=icon]:hidden">
             <div className="flex items-center justify-between">
                 <SidebarGroupLabel className="text-base">分组管理</SidebarGroupLabel>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                        console.log("新增分组")
-                    }}
-                    className="h-4 w-4"
-                >
-                    <Plus className="h-4 w-4"/>
-                    <span className="sr-only">新增分组</span>
-                </Button>
+                <GroupAddDialog refresh={queryGroupItems}/>
             </div>
             <SidebarMenu>
                 <Conditional>
@@ -101,7 +99,10 @@ export function NavGroups({userInfo} : {
                             {groupItems.map((item) => (
                                 <SidebarMenuItem key={item.name}>
                                     <SidebarMenuButton asChild>
-                                        <Link href={`/link/${item.gid}`}>
+                                        <Link
+                                            href={`/link/${item.gid}`}
+                                            onClick={() => handleGroupClick(item)}
+                                        >
                                             <span
                                                 className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white text-sm font-medium">
                                                 {item.linkCount}

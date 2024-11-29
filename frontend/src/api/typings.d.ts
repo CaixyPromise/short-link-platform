@@ -647,7 +647,7 @@ declare namespace API {
     pageSize?: number;
     sortField?: string;
     sortOrder?: string;
-    gid?: string;
+    gid: string;
   };
 
   type LinkStatsToday = {
@@ -705,6 +705,12 @@ declare namespace API {
     updateTime?: string;
     tagList?: string[];
     user?: UserVO;
+  };
+
+  type LinkUpdateGroupRequest = {
+    groupId?: string;
+    newGroupId?: string;
+    linkIds?: number[];
   };
 
   type LinkUpdateRequest = {

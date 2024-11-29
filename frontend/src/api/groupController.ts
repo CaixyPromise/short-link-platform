@@ -4,7 +4,7 @@ import request from '@/lib/request';
 
 /** 此处后端没有提供注释 POST /group/add */
 export async function addGroup(body: API.GroupAddRequest, options?: { [key: string]: any }) {
-  return request<API.ResultBoolean>('/group/add', {
+  return request<API.ResultString>('/group/add', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

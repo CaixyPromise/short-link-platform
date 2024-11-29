@@ -28,7 +28,7 @@ public interface GroupService extends IService<Group> {
      */
     void validGroup(Group group, boolean add);
 
-    boolean addGroup(GroupAddRequest groupAddRequest, UserVO userVO);
+    String addGroup(GroupAddRequest groupAddRequest, UserVO userVO);
 
     List<GroupItemVO> getMyGroupItems(String nickName);
 

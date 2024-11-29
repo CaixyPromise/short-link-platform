@@ -97,7 +97,6 @@ export const TableActionBar: React.FC<TableActionBarProps> = ({
             </Button>
         );
     };
-    console.log("title: ", title)
 
     return (
         <CardHeader>

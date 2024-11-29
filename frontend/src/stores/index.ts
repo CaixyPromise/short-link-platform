@@ -1,11 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit";
 import LoginUser from "./LoginUser/index";
 import Layout from "./Layout/index";
+import Group from "@/stores/Group";
 
 const store = configureStore({
     reducer:{
         LoginUser,
-        Layout
+        Layout,
+        Group
     }
 })
 
