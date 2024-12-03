@@ -32,6 +32,7 @@ import DateTimeRangePicker from "@/components/DateTimeRangePicker";
 import {addLink} from "@/api/linkController";
 import {useToast} from "@/hooks/use-toast";
 import {ValidDateEnum} from "@/enums/ValidDateEnum";
+import {useAppSelector} from "@/stores/hooks";
 
 
 interface AddShortLinkFormProps {
@@ -42,6 +43,7 @@ interface AddShortLinkFormProps {
 
 export function AddShortLinkForm({open, setOpen, groupId}: AddShortLinkFormProps) {
     const {toast} = useToast();
+    const currentGroup = useAppSelector(state => state.Group);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -84,7 +86,7 @@ export function AddShortLinkForm({open, setOpen, groupId}: AddShortLinkFormProps
                 <DialogHeader>
                     <DialogTitle>创建短链接</DialogTitle>
                     <DialogDescription>
-                        当前分组标识符: {groupId}
+                        当前分组名称: {currentGroup.currentGroupName}
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
