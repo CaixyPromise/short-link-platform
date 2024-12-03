@@ -20,10 +20,10 @@ import com.caixy.shortlink.model.vo.group.GroupVO;
 import com.caixy.shortlink.service.GroupService;
 import com.caixy.shortlink.manager.Authorization.AuthManager;
 
+import com.caixy.shortlink.utils.StringUtils;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -99,26 +99,15 @@ public class GroupController
      * @param groupUpdateRequest
      * @return
      */
-    @PostMapping("/update")
-    @AuthCheck(mustRole = UserRoleEnum.ADMIN)
-    public Result<Boolean> updateGroup(@RequestBody GroupUpdateRequest groupUpdateRequest)
+    @PostMapping("/update/name")
+    public Result<Boolean> updateGroupByGid(@RequestBody @Valid GroupUpdateRequest groupUpdateRequest)
     {
-//        if (groupUpdateRequest == null || groupUpdateRequest.getId() <= 0) {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-//        }
-//        // todo 在此处将实体类和 DTO 进行转换
-//        Group group = new Group();
-//        BeanUtils.copyProperties(groupUpdateRequest, group);
-//        // 数据校验
-//        groupService.validGroup(group, false, );
-//        // 判断是否存在
-//        long id = groupUpdateRequest.getId();
-//        Group oldGroup = groupService.getById(id);
-//        ThrowUtils.throwIf(oldGroup == null, ErrorCode.NOT_FOUND_ERROR);
-//        // 操作数据库
-//        boolean result = groupService.updateById(group);
-//        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-        return ResultUtils.success(true);
+        if (groupUpdateRequest == null || StringUtils.isEmpty(groupUpdateRequest.getGid()))
+        {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "分组id不能为空");
+        }
+        UserVO loginUser = authManager.getLoginUser();
+        return ResultUtils.success(groupService.updateGroupNameByGid(loginUser, groupUpdateRequest));
     }
 
     /**
@@ -128,14 +117,12 @@ public class GroupController
      * @return
      */
     @GetMapping("/get/vo")
-    public Result<GroupVO> getGroupVOById(long id, HttpServletRequest request)
+    public Result<GroupVO> getGroupVOById(@RequestParam("gid") String gid)
     {
-        ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
-        // 查询数据库
-        Group group = groupService.getById(id);
-        ThrowUtils.throwIf(group == null, ErrorCode.NOT_FOUND_ERROR);
+        ThrowUtils.throwIf(StringUtils.isEmpty(gid), ErrorCode.PARAMS_ERROR);
+        UserVO loginUser = authManager.getLoginUser();
         // 获取封装类
-        return ResultUtils.success(groupService.getGroupVO(group, request));
+        return ResultUtils.success(groupService.getGroupVO(gid, loginUser));
     }
 
     /**

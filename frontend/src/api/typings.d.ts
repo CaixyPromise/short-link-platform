@@ -39,7 +39,7 @@ declare namespace API {
   };
 
   type getGroupVOByIdParams = {
-    id: number;
+    gid: string;
   };
 
   type getLinkAccessLogsVOByIdParams = {
@@ -146,19 +146,18 @@ declare namespace API {
   };
 
   type GroupUpdateRequest = {
-    id?: number;
-    title?: string;
-    content?: string;
-    tags?: string[];
+    gid?: string;
+    name?: string;
+    description?: string;
+    sortOrder?: number;
   };
 
   type GroupVO = {
-    id?: number;
     gid?: string;
     name?: string;
     sortOrder?: number;
     createTime?: string;
-    updateTime?: string;
+    description?: string;
   };
 
   type initOAuthLoginParams = {

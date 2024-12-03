@@ -106,9 +106,12 @@ export async function listMyGroupVoByPage(
   });
 }
 
-/** 此处后端没有提供注释 POST /group/update */
-export async function updateGroup(body: API.GroupUpdateRequest, options?: { [key: string]: any }) {
-  return request<API.ResultBoolean>('/group/update', {
+/** 此处后端没有提供注释 POST /group/update/name */
+export async function updateGroupByGid(
+  body: API.GroupUpdateRequest,
+  options?: { [key: string]: any },
+) {
+  return request<API.ResultBoolean>('/group/update/name', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table"
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar"
 import {Button} from "@/components/ui/button"
-import {Loader2, Copy, CircleUser, AlertCircle} from "lucide-react"
+import {Loader2, Copy, CircleUser, AlertCircle, Inbox, Info} from "lucide-react"
 import {useDataTable} from "@/components/DataTable/DataTableContext";
 
 import {copyToClipboard} from "@/lib/copyToClipboard"
@@ -24,8 +24,14 @@ import BreathingDot from "@/components/BreathingDot";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import CopyableText from "@/components/CopyableText";
 import {cn} from "@/lib/utils";
+import {Empty} from "@/components/Empty/empty";
+import {EmptyDescription} from "@/components/Empty/empty-description";
+import {EmptyIcon} from "@/components/Empty/empty-icon";
+import DefaultTableEmpty from "@/components/DataTable/components/TableEmpty";
 
-export const TableContent: React.FC = () =>
+export const TableContent: React.FC<{
+    tableEmpty: ReactNode | null
+}> = ({tableEmpty = <DefaultTableEmpty />}) =>
 {
     const {data, columns, visibleColumns, isLoading, sortConfig, setSortConfig} =
         useDataTable()
@@ -133,16 +139,16 @@ export const TableContent: React.FC = () =>
                             <TableHeader>
                             <TableRow>
                             {columns.filter(column => visibleColumns.includes(column.dataIndex as string))
-                                .map(column => (
-                                <TableHead key={column.dataIndex as string}>
+                                .map((column, index) => (
+                                <TableHead key={`${column.dataIndex as string}-${index}`}>
                                     <div
                                         className={`flex items-center ${
                                             column.sorter ? 'cursor-pointer select-none' : ''
                                         }`}
                                         onClick={() => column.sorter && handleSort(column.dataIndex as string)}
                                     >
-                                        <Conditional value={column.toolTip}>
-                                            <Tooltip>
+                                        <Conditional value={column.toolTip} key={`${column.dataIndex as string}-${index}-1`}>
+                                            <Tooltip key={column.dataIndex as string}>
                                                 <TooltipTrigger asChild>
                                                     <button
                                                         className="mr-1 inline-flex items-center justify-center rounded-full w-4 h-4 bg-muted text-muted-foreground hover:bg-muted/80 hover:text-muted-foreground/80 active:bg-muted/60 active:text-muted-foreground/60 transition-colors"
@@ -157,7 +163,7 @@ export const TableContent: React.FC = () =>
                                             </Tooltip>
                                         </Conditional>
                                         {column.title}
-                                        <Conditional value={column.sorter}>
+                                        <Conditional value={column.sorter} key={`${column.dataIndex as string}-${index}-2`}>
                                             <span className="ml-1 text-xs">
                                                 <Conditional value={sortConfig[column.dataIndex as string]}>
                                                     <Condition.When
@@ -177,33 +183,45 @@ export const TableContent: React.FC = () =>
                                     </div>
                                 </TableHead>
                                 ))}
-                                {/*<TableHead>操作</TableHead>*/}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {data.map((item: any, index: number) => (
-                                <TableRow key={item.id || `row-${index}`}>
-                                {columns
-                                        .filter(column =>
-                                            visibleColumns.includes(column.dataIndex as string)
-                                        )
-                                        .map(column => (
-                                            <TableCell
-                                                key={`${item.id || index}-${column.title}-${column.dataIndex}`}
-                                                className={cn(
-                                                    column.className, // 自定义样式
-                                                    {
-                                                        "text-left": column.align === "left",
-                                                        "text-center": column.align === "center",
-                                                        "text-right": column.align === "right",
-                                                    }
-                                                )}>
-                                                {renderCellContent(column, item, index)}
-                                            </TableCell>
+                            <Conditional value={data.length}>
+                                <Condition.When test={data.length > 0}>
+                                    {
+                                        data.map((item: any, index: number) => (
+                                            <TableRow key={item.id || `row-${index}`}>
+                                                {columns
+                                                    .filter(column =>
+                                                        visibleColumns.includes(column.dataIndex as string)
+                                                    )
+                                                    .map(column => (
+                                                        <TableCell
+                                                            key={`${item.id || index}-${column.title}-${column.dataIndex}`}
+                                                            className={cn(
+                                                                column.className, // 自定义样式
+                                                                {
+                                                                    "text-left": column.align === "left",
+                                                                    "text-center": column.align === "center",
+                                                                    "text-right": column.align === "right",
+                                                                }
+                                                            )}>
+                                                            {renderCellContent(column, item, index)}
+                                                        </TableCell>
+                                                    ))}
+                                            </TableRow>
                                         ))}
-                                </TableRow>
-                                ))}
-                            </TableBody>
+                                    <Condition.Else>
+                                        <TableRow>
+                                            <TableCell colSpan={visibleColumns.length} className="h-[400px]">
+                                                {tableEmpty}
+                                            </TableCell>
+                                        </TableRow>
+                                    </Condition.Else>
+                                </Condition.When>
+
+                            </Conditional>
+                        </TableBody>
                         </Table>
                     </Condition.Else>
                 </Condition.When>

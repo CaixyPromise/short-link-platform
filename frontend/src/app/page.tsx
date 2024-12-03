@@ -21,15 +21,12 @@ const columns: Array<DateTableColumnProps<{
     },
     {
         title: "访问人数",
-        dataIndex: "visitCount"
     },
     {
         title: "Ip数",
-        dataIndex: "visitCount"
     },
     {
         title: "操作",
-        dataIndex: "visitCount"
     },
 ]
 

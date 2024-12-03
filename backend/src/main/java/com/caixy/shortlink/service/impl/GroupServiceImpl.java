@@ -14,6 +14,7 @@ import com.caixy.shortlink.mapper.GroupMapper;
 import com.caixy.shortlink.model.convertor.group.GroupConvertor;
 import com.caixy.shortlink.model.dto.group.GroupAddRequest;
 import com.caixy.shortlink.model.dto.group.GroupQueryRequest;
+import com.caixy.shortlink.model.dto.group.GroupUpdateRequest;
 import com.caixy.shortlink.model.entity.Group;
 
 import com.caixy.shortlink.model.vo.group.GroupItemVO;
@@ -37,6 +38,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 分组信息服务实现
@@ -96,6 +98,31 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "添加分组失败");
         }
         return group.getGid();
+    }
+
+    /**
+     * 更新组名称
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @version 2024/11/30 23:37
+     */
+    @Override
+    public Boolean updateGroupNameByGid(UserVO loginUser, GroupUpdateRequest groupUpdateRequest)
+    {
+        // 检查是否为空
+        LambdaQueryWrapper<Group> groupQueryWrapper = new LambdaQueryWrapper<>();
+        groupQueryWrapper.eq(Group::getGid, groupUpdateRequest.getGid())
+                .eq(Group::getUsername, loginUser.getNickName());
+        Group group = baseMapper.selectOne(groupQueryWrapper);
+        if (group == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "分组不存在");
+        }
+        // 设置新的数据
+        Optional.ofNullable(groupUpdateRequest.getName()).ifPresent(group::setName);
+        Optional.ofNullable(groupUpdateRequest.getDescription()).ifPresent(group::setDescription);
+        Optional.ofNullable(groupUpdateRequest.getSortOrder()).ifPresent(group::setSortOrder);
+        return this.updateById(group);
     }
 
     /**
@@ -195,15 +222,21 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
     /**
      * 获取分组信息封装
      *
-     * @param group
-     * @param request
+     * @param gid
+     * @param userVO
      * @return
      */
     @Override
-    public GroupVO getGroupVO(Group group, HttpServletRequest request)
+    public GroupVO getGroupVO(String gid, UserVO userVO)
     {
-        // todo: 补充获取分组信息封装逻辑
-        return null;
+        LambdaQueryWrapper<Group> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Group::getGid, gid)
+                .eq(Group::getUsername, userVO.getNickName());
+        Group group = this.baseMapper.selectOne(queryWrapper);
+        if (group == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        return GroupConvertor.INSTANCE.copyVO(group);
     }
 
     /**

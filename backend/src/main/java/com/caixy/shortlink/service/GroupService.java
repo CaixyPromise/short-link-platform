@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.caixy.shortlink.model.dto.group.GroupAddRequest;
 import com.caixy.shortlink.model.dto.group.GroupQueryRequest;
+import com.caixy.shortlink.model.dto.group.GroupUpdateRequest;
 import com.caixy.shortlink.model.entity.Group;
 import com.caixy.shortlink.model.vo.group.GroupItemVO;
 import com.caixy.shortlink.model.vo.group.GroupVO;
@@ -30,6 +31,8 @@ public interface GroupService extends IService<Group> {
 
     String addGroup(GroupAddRequest groupAddRequest, UserVO userVO);
 
+    Boolean updateGroupNameByGid(UserVO loginUser, GroupUpdateRequest groupUpdateRequest);
+
     List<GroupItemVO> getMyGroupItems(String nickName);
 
     Page<GroupVO> getMyGroupList(UserVO userVO, GroupQueryRequest groupQueryRequest);
@@ -45,11 +48,11 @@ public interface GroupService extends IService<Group> {
     /**
      * 获取分组信息封装
      *
-     * @param group
-     * @param request
+     * @param gid
+     * @param userVO
      * @return
      */
-    GroupVO getGroupVO(Group group, HttpServletRequest request);
+    GroupVO getGroupVO(String gid, UserVO userVO);
 
     /**
      * 分页获取分组信息封装

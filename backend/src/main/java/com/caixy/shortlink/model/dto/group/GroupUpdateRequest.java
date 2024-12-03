@@ -1,9 +1,11 @@
 package com.caixy.shortlink.model.dto.group;
 
+import com.caixy.shortlink.common.BaseSerializablePayload;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
-
-import java.io.Serializable;
-import java.util.List;
+import lombok.EqualsAndHashCode;
 
 /**
  * 更新分组信息请求
@@ -11,28 +13,31 @@ import java.util.List;
 
 
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class GroupUpdateRequest implements Serializable {
+public class GroupUpdateRequest extends BaseSerializablePayload
+{
+    /**
+     * gid
+     */
+    private String gid;
 
     /**
-     * id
-     */
-    private Long id;
+    * 分组名称
+    */
+    @Size(max = 16, min = 1, message = "分组名称长度在1-16之间")
+    private String name;
 
     /**
-     * 标题
-     */
-    private String title;
+    * 分组描述
+    */
+    @Size(max = 100, min = 1, message = "分组描述长度在1-100之间")
+    private String description;
 
     /**
-     * 内容
+     * 分组权重
      */
-    private String content;
-
-    /**
-     * 标签列表
-     */
-    private List<String> tags;
-
-    private static final long serialVersionUID = 1L;
+    @Min(0)
+    @Max(Integer.MAX_VALUE - 1)
+    private Integer sortOrder;
 }

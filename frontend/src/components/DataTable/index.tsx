@@ -36,7 +36,7 @@ const DataTable = <T extends Record<string, any>>({
                     <Card>
                         <TooltipProvider>
                             {components?.TableActionBar !== null && (components?.TableActionBar || <TableActionBar/>)}
-                            {components?.TableContent !== null && (components?.TableContent || <TableContent />)}
+                            {components?.TableContent !== null && (components?.TableContent || <TableContent tableEmpty={components?.TableEmpty} />)}
                             {components?.TableFooter !== null && (components?.TableFooter || <TableFooter />)}
                         </TooltipProvider>
                     </Card>

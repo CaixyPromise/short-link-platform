@@ -10,7 +10,7 @@ import {Condition, Conditional} from "@/components/Conditional";
 import React, {useEffect, useState} from "react";
 import {Button} from "@/components/ui/button";
 import CopyableText from "@/components/CopyableText";
-import {Plus} from "lucide-react";
+import {ArrowBigRight, Info, Plus} from "lucide-react";
 import ShortLinkQRCode from "@/app/link/components/ShortLinkQRCode";
 import {AddShortLinkForm} from "@/app/link/components/AddShortLinkForm";
 import {default_operation_button, TableActionBar} from "@/components/DataTable/components/TableActionBar";
@@ -20,6 +20,10 @@ import {ValidityPeriodCell} from "@/app/link/components/ValidityCell";
 import {useAppDispatch, useAppSelector} from "@/stores/hooks";
 import {onChangeGroupClick, updateCurrentGroupByGid} from "@/stores/Group";
 import UpdateGroupModal from "@/app/link/components/UpdateGroupModal";
+import {Empty} from "@/components/Empty/empty";
+import {EmptyIcon} from "@/components/Empty/empty-icon";
+import {EmptyDescription} from "@/components/Empty/empty-description";
+import EmptyDescriptionText from "@/components/Empty/empty-description-text";
 
 
 const MetricItem: React.FC<{
@@ -312,7 +316,29 @@ export default function LinkTablePage() {
                                 variant: "default"
                             },
                             ...default_operation_button.filter(item => item.key !== "add"),
-                        ]}/>
+                        ]}/>,
+                    TableEmpty: (
+                        <Empty>
+                            <EmptyIcon>
+                                <Info className="text-blue-500 w-20 h-20 text-muted-foreground" />
+                            </EmptyIcon>
+                            <EmptyDescription>
+                                当前分组: {currentGroup.currentGroupName} 暂无链接数据 :)
+                            </EmptyDescription>
+                            <EmptyDescription>
+                                <Button
+                                    onClick={() => {
+                                        setShortModalVisible(true)
+                                    }}
+                                    variant="ghost"
+                                    className="text-red-600"
+                                >
+                                    <ArrowBigRight />
+                                    去创建
+                                </Button>
+                            </EmptyDescription>
+                        </Empty>
+                    )
                 }}
             />
             <AddShortLinkForm open={shortModalVisible} setOpen={setShortModalVisible} groupId={groupId}/>

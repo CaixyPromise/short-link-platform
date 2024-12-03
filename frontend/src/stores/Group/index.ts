@@ -11,17 +11,31 @@ export const groupSlice = createSlice({
     } as GroupStoreProps,
     reducers: {
         setGroupItem: (state, action) => {
-            state.groupList = action.payload
+            return {
+                ...state,
+                groupList: action.payload
+            }
         },
         addGroupItem: (state, action) => {
             state.groupList.push(action.payload)
         },
         modifyGroupItem: (state, action) => {
-            const index = state.groupList.findIndex(item => item.id === action.payload.id)
-            if (index !== -1) {
-                state.groupList[index] = action.payload
-            }
+            console.log('Previous groupList:', state.groupList);
+            console.log('Action payload:', action.payload);
+
+            const updatedGroupList = state.groupList.map(item =>
+                item.gid === action.payload.gid ? { ...item, ...action.payload } : item
+            );
+
+            console.log('Updated groupList:', updatedGroupList);
+
+            // 返回一个新的状态对象
+            return {
+                ...state,
+                groupList: updatedGroupList,
+            };
         },
+
         onChangeGroupClick: (state, action) => {
             const group = action.payload;
             if (group) {

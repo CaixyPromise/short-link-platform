@@ -15,9 +15,6 @@ import java.util.List;
  */
 @Data
 public class GroupVO implements Serializable {
-
-    private Long id;
-
     /**
      * 分组标识
      */
@@ -39,23 +36,8 @@ public class GroupVO implements Serializable {
     private Date createTime;
 
     /**
-     * 修改时间
-     */
-    private Date updateTime;
+    * 分组描述
+    */
+    private String description;
 
-
-    /**
-     * 对象转封装类
-     *
-     * @param group
-     * @return
-     */
-    public static GroupVO objToVo(Group group) {
-        if (group == null) {
-            return null;
-        }
-        GroupVO groupVO = new GroupVO();
-        BeanUtils.copyProperties(group, groupVO);
-        return groupVO;
-    }
 }

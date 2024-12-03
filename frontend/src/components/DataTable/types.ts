@@ -115,6 +115,7 @@ export type DataTableProps<T> = {
         TableActionBar?: ReactNode | null
         TableContent?: ReactNode | null
         TableFooter?: ReactNode | null
+        TableEmpty?: ReactNode | null
     }
     className?: string
     style?: React.CSSProperties;

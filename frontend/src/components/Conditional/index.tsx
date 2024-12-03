@@ -249,7 +249,7 @@ const Conditional = <T,>({ value, children, strict = false }: ConditionalProps<T
         let switchMatched = false;
         const switchOutput: ReactNode[] = [];
 
-        React.Children.forEach(props.children, child => {
+        React.Children.forEach(props.children, (child, index) => {
             if (!isValidElement(child)) {
                 return;
             }
@@ -264,7 +264,7 @@ const Conditional = <T,>({ value, children, strict = false }: ConditionalProps<T
                 if (caseMatch) {
                     switchMatched = true;
                     switchOutput.push(
-                        <ConditionalContext.Provider value={switchValue}>
+                        <ConditionalContext.Provider value={switchValue} key={`Switch-Case-${index}`}>
                             {childProps.children}
                         </ConditionalContext.Provider>
                     );
@@ -272,7 +272,7 @@ const Conditional = <T,>({ value, children, strict = false }: ConditionalProps<T
             } else if (displayName === 'Condition.Default') {
                 if (!switchMatched) {
                     switchOutput.push(
-                        <ConditionalContext.Provider value={switchValue}>
+                        <ConditionalContext.Provider value={switchValue} key={`Switch-Default-${index}`}>
                             {childProps.children}
                         </ConditionalContext.Provider>
                     );
