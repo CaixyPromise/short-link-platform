@@ -3,15 +3,11 @@ package com.caixy.shortlink.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.caixy.shortlink.annotation.AuthCheck;
 import com.caixy.shortlink.common.Result;
-import com.caixy.shortlink.common.DeleteRequest;
 import com.caixy.shortlink.common.ErrorCode;
 import com.caixy.shortlink.common.ResultUtils;
 import com.caixy.shortlink.exception.BusinessException;
 import com.caixy.shortlink.exception.ThrowUtils;
-import com.caixy.shortlink.model.dto.group.GroupAddRequest;
-import com.caixy.shortlink.model.dto.group.GroupEditRequest;
-import com.caixy.shortlink.model.dto.group.GroupQueryRequest;
-import com.caixy.shortlink.model.dto.group.GroupUpdateRequest;
+import com.caixy.shortlink.model.dto.group.*;
 import com.caixy.shortlink.model.entity.Group;
 import com.caixy.shortlink.model.enums.UserRoleEnum;
 import com.caixy.shortlink.model.vo.group.GroupItemVO;
@@ -70,45 +66,45 @@ public class GroupController
      * 删除分组信息
      *
      * @param deleteRequest
-     * @param request
      * @return
      */
     @PostMapping("/delete")
-    public Result<Boolean> deleteGroup(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request)
+    public Result<Integer> deleteGroup(@RequestBody @Valid GroupDeleteRequest deleteRequest)
     {
-        if (deleteRequest == null || deleteRequest.getId() <= 0)
-        {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
         UserVO loginUser = authManager.getLoginUser();
-        long id = deleteRequest.getId();
-        // 判断是否存在
-        Group oldGroup = groupService.getById(id);
-        ThrowUtils.throwIf(oldGroup == null, ErrorCode.NOT_FOUND_ERROR);
-        // 仅本人或管理员可删除
-        // checkIsSelfOrAdmin(oldGroup);
-        // 操作数据库
-        boolean result = groupService.removeById(id);
-        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-        return ResultUtils.success(true);
+        int result = groupService.deleteGroup(deleteRequest.getGid(), loginUser, deleteRequest.getNewGroupId());
+        return ResultUtils.success(result);
     }
 
     /**
      * 更新分组信息（仅管理员可用）
      *
-     * @param groupUpdateRequest
+     * @param groupUpdateInfoRequest
      * @return
      */
-    @PostMapping("/update/name")
-    public Result<Boolean> updateGroupByGid(@RequestBody @Valid GroupUpdateRequest groupUpdateRequest)
+    @PostMapping("/update/info")
+    public Result<Boolean> updateGroupByGid(@RequestBody @Valid GroupUpdateInfoRequest groupUpdateInfoRequest)
     {
-        if (groupUpdateRequest == null || StringUtils.isEmpty(groupUpdateRequest.getGid()))
+        if (groupUpdateInfoRequest == null || StringUtils.isEmpty(groupUpdateInfoRequest.getGid()))
         {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "分组id不能为空");
         }
         UserVO loginUser = authManager.getLoginUser();
-        return ResultUtils.success(groupService.updateGroupNameByGid(loginUser, groupUpdateRequest));
+        return ResultUtils.success(groupService.updateGroupInfoByGid(loginUser, groupUpdateInfoRequest));
     }
+
+    @PostMapping("/update/order")
+    public Result<Boolean> updateGroupOrder(@RequestBody @Valid GroupUpdateOrderRequest groupUpdateOrderRequest) {
+        if (groupUpdateOrderRequest == null || StringUtils.isEmpty(groupUpdateOrderRequest.getGid())) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "分组id不能为空");
+        }
+        UserVO loginUser = authManager.getLoginUser();
+        boolean saved = groupService.updateOrderByGid(groupUpdateOrderRequest.getGid(),
+                groupUpdateOrderRequest.getOffset(),
+                loginUser);
+        return ResultUtils.success(saved);
+    }
+
 
     /**
      * 根据 id 获取分组信息（封装类）

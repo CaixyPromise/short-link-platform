@@ -93,5 +93,11 @@
             </if>
     </select>
 
+    <update id="updateGidByOldGid" parameterType="map">
+        UPDATE t_link
+        SET gid = #{newGid}
+        WHERE gid = #{oldGid}
+          AND is_deleted = 0;
+    </update>
 
 </mapper>

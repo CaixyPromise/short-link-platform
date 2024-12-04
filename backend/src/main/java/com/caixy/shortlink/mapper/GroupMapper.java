@@ -16,7 +16,17 @@ import java.util.List;
 public interface GroupMapper extends BaseMapper<Group>
 {
     Group findGroupByGid(@Param("gid") String gid);
+
     List<GroupItemVO> findGroupsWithLinkCounts(@Param("nickName") String nickName);
+
+    long countGroupsByNickname();
+
+    void updateIndexAfterDelete(@Param("sortOrder") double sortOrder);
+
+    void decreaseIndexInRange(@Param("start") Integer start, @Param("end") Integer end);
+
+    void increaseIndexInRange(@Param("start") Integer start, @Param("end") Integer end);
+
 }
 
 

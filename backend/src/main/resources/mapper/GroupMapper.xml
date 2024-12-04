@@ -8,8 +8,8 @@
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="gid" column="gid" jdbcType="VARCHAR"/>
             <result property="name" column="name" jdbcType="VARCHAR"/>
-            <result property="description" column="description" jdbcType="VARCHAR" />
             <result property="username" column="username" jdbcType="VARCHAR"/>
+            <result property="description" column="description" jdbcType="VARCHAR"/>
             <result property="sortOrder" column="sort_order" jdbcType="INTEGER"/>
             <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
             <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
@@ -17,24 +17,26 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,gid,name,description,
-        username,sort_order,create_time,
-        update_time,is_deleted
+        id,gid,name,
+        username,description,sort_order,
+        create_time,update_time,is_deleted
     </sql>
-    <select id="findGroupByGid" resultType="com.caixy.shortlink.model.entity.Group">
+    <select id="findGroupByGid" resultMap="BaseResultMap">
         select
-            <include refid="Base_Column_List"/>
+        <include refid="Base_Column_List"/>
         from t_group
-            <if test="gid != null">
-                where gid = #{gid};
-            </if>
+        <if test="gid != null">
+            where gid = #{gid};
+        </if>
     </select>
 
     <select id="findGroupsWithLinkCounts" resultType="com.caixy.shortlink.model.vo.group.GroupItemVO">
         SELECT
             g.gid,
             g.name,
-            IFNULL(l.linkCount, 0) AS linkCount
+            IFNULL(l.linkCount, 0) AS linkCount,
+            g.sort_order,
+            g.create_time
         FROM
             short_link.t_group g
                 LEFT JOIN (
@@ -52,5 +54,60 @@
             g.username = #{nickName}
           AND g.is_deleted = 0;
     </select>
+
+    <!--统计分组-->
+    <select id="countGroupsByNickname" resultType="long">
+        SELECT COUNT(*)
+        FROM t_group
+        WHERE is_deleted = 0
+        <if test="nickName != null">
+            AND username = #{nickName}
+        </if>
+    </select>
+
+    <!-- 在删除之后更新排序序号 -->
+    <!-- 使用场景：
+         当某个元素被删除时，需将其后所有元素的排序值（sort_order）减 1。
+         参数：
+         - sortOrder: 被删除元素的排序值
+    -->
+    <update id="updateIndexAfterDelete">
+        UPDATE t_group
+        SET sort_order = sort_order - 1
+        WHERE sort_order &gt; #{sortOrder}
+          AND is_deleted = 0
+    </update>
+
+    <!-- 减少范围内的排序序号 -->
+    <!-- 使用场景：
+         当一个分组order从较低位置（x）移动到较高位置（y）时（即 x < y，往上排序），
+         将 (x, y) 范围内的所有order排序值加 1。
+         参数：
+         - start: 移动元素原始位置的排序值 x
+         - end: 移动元素目标位置的排序值 y
+    -->
+    <update id="decreaseIndexInRange">
+        UPDATE t_group
+        SET sort_order = sort_order - 1
+        WHERE sort_order &gt; #{start}
+          AND sort_order &lt;= #{end}
+          AND is_deleted = 0
+    </update>
+
+    <!-- 增加范围内的排序序号 -->
+    <!-- 使用场景：
+         当一个分组order从较高位置（x）移动到较低位置（y）时（即 x > y，向下排序），
+         将 (y, x) 范围内的所有order排序值加 1。
+         参数：
+         - start: 移动元素目标位置的排序值 y
+         - end: 移动元素原始位置的排序值 x
+    -->
+    <update id="increaseIndexInRange">
+        UPDATE t_group
+        SET sort_order = sort_order + 1
+        WHERE sort_order &gt;= #{start}
+          AND sort_order &lt; #{end}
+          AND is_deleted = 0
+    </update>
 
 </mapper>

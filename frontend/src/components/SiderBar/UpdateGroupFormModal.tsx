@@ -36,11 +36,6 @@ const groupUpdateSchema = z.object({
         .min(1)
         .max(100, "分组描述不得超过100个字")
         .nullable(),
-    sortOrder: z
-        .number()
-        .int()
-        .min(0)
-        .max(Number.MAX_VALUE - 1, "排序规则过大"),
 });
 
 type GroupUpdateFormValues = z.infer<typeof groupUpdateSchema>;
@@ -48,13 +43,15 @@ type GroupUpdateFormValues = z.infer<typeof groupUpdateSchema>;
 interface GroupUpdateDialogProps {
     isOpen: boolean;
     onClose: (newData?: API.GroupItemVO) => void;
-    gid: string | null
+    gid: string | null;
+    submitter: (groupData?: API.GroupItemVO) => Promise<void>
 }
 
 export default function UpdateGroupForm({
     isOpen,
     onClose,
     gid,
+    submitter
 }: GroupUpdateDialogProps) {
     const {toast} = useToast();
     const [loading, setLoading] = useState<boolean>(false);
@@ -93,34 +90,20 @@ export default function UpdateGroupForm({
 
     const handleSubmit = (data: GroupUpdateFormValues) => {
         setLoading(true)
-        updateGroupByGid({
+        submitter?.({
             gid: gid,
             ...data
-        }).then((res)=> {
-            if (res.code === 0) {
-                toast({
-                    title: "更新成功",
-                    description: "分组信息已更新",
-                })
-            }
-            onClose({
-                ...data,
-                gid
-            } as API.GroupItemVO)
-        }).catch((error) => {
-            toast({
-                title: "更新失败",
-                description: error.message,
-                variant: "destructive",
-            })
         }).finally(() => {
             setLoading(false)
+            onClose({
+                gid: gid,
+                ...data
+            })
         })
     };
 
     return (
         <Dialog open={isOpen} onOpenChange={(state) => {
-            console.log("onOpenChange：", state);
             return !state && onClose()
         }} modal={false}>
             <DialogContent
@@ -132,7 +115,6 @@ export default function UpdateGroupForm({
                     <DialogHeader>
                         <DialogTitle>更新分组</DialogTitle>
                     </DialogHeader>
-                    <DialogDescription>更新分组信息</DialogDescription>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
                             <FormField
@@ -140,7 +122,7 @@ export default function UpdateGroupForm({
                                 name="name"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Name</FormLabel>
+                                        <FormLabel>分组名称</FormLabel>
                                         <FormControl>
                                             <Input {...field} />
                                         </FormControl>
@@ -153,26 +135,9 @@ export default function UpdateGroupForm({
                                 name="description"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Description</FormLabel>
+                                        <FormLabel>分组描述</FormLabel>
                                         <FormControl>
                                             <Textarea {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="sortOrder"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Sort Order</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                type="number"
-                                                {...field}
-                                                onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
-                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

@@ -27,6 +27,7 @@ import com.caixy.shortlink.model.vo.link.LinkCreateVO;
 import com.caixy.shortlink.model.vo.link.LinkVO;
 
 import com.caixy.shortlink.model.vo.user.UserVO;
+import com.caixy.shortlink.service.GroupService;
 import com.caixy.shortlink.service.LinkService;
 import com.caixy.shortlink.utils.DateUtils;
 import com.caixy.shortlink.utils.HashUtil;
@@ -40,6 +41,7 @@ import org.redisson.api.RBloomFilter;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
@@ -69,6 +71,7 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
     private final RedisUtils redisUtils;
 
     private static final LinkConvertor linkConvertor = LinkConvertor.INSTANCE;
+    private final GroupService groupService;
 
     private RBloomFilter<String> shortLinkFilter;
     private final static int MAX_RETRY_GENERATE_SHORT_LINK = 10;
@@ -386,13 +389,12 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
      */
     @Transactional
     @Override
-    public Boolean moveLinksToGroup(String groupId, String newGroupId, List<Long> linkIds, UserVO loginUser)
+    public Boolean moveLinksToGroup(String groupId, String newGroupId, Collection<Long> linkIds, UserVO loginUser)
     {
-
         // 1. 检查新分组是否存在
         Group newGroup = groupMapper.findGroupByGid(newGroupId);
         if (newGroup == null || !newGroup.getUsername().equals(loginUser.getNickName())) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "分组不存在或没有操作权限");
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "新的分组不存在或没有操作权限");
         }
         // 1.1 检查原来的分组是否存在
         Group originGroup = groupMapper.findGroupByGid(groupId);
@@ -424,18 +426,7 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
     private Link getLinkByGroupAndUser(String groupId, Long linkId, UserVO loginUser)
     {
         // 2. 先查询出链接的所在分组，并且检查权限
-        Group group = groupMapper.findGroupByGid(groupId);
-        // 2.1 检查分组是否存在
-        if (group == null) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "链接不存在");
-        }
-        // todo: 后续实现团队成员也可以操作状态
-        // 2.2 检查是否具有权限：创建者或管理员
-        boolean isCreator = group.getUsername().equals(loginUser.getNickName());
-        boolean isAdmin = UserRoleEnum.ADMIN.equals(loginUser.getUserRole());
-        if (!isCreator && !isAdmin) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "没有操作权限");
-        }
+        Group group = groupService.findByGidAndCheckAccess(groupId, loginUser);
         // 3. 查询对应分组内的链接信息
         LambdaQueryWrapper<Link> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper
@@ -522,7 +513,8 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
         log.info("Link [{}] cached in Redis with an expiration time of [{}] seconds", link.getFullShortUrl(), expireTimeSeconds);
     }
 
-    private void checkLinkValidDate(Link link) {
+    private void checkLinkValidDate(Link link)
+    {
         ShortLinkDateType dateType = ShortLinkDateType.getEnumByCode(link.getValidDateType());
         ThrowUtils.throwIf(dateType == null, ErrorCode.PARAMS_ERROR, "有效日期类型错误");
 

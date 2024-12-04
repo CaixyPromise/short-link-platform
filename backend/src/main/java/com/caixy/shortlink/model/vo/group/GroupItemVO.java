@@ -27,5 +27,13 @@ public class GroupItemVO extends BaseSerializablePayload
     /**
     * 链接数量
     */
-    private int linkCount;
+    private Integer linkCount;
+    /**
+    * 排序顺序
+    */
+    private Double sortOrder;
+    /**
+    * 创建时间
+    */
+    private Date createTime;
 }

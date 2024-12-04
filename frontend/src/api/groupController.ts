@@ -15,8 +15,8 @@ export async function addGroup(body: API.GroupAddRequest, options?: { [key: stri
 }
 
 /** 此处后端没有提供注释 POST /group/delete */
-export async function deleteGroup(body: API.DeleteRequest, options?: { [key: string]: any }) {
-  return request<API.ResultBoolean>('/group/delete', {
+export async function deleteGroup(body: API.GroupDeleteRequest, options?: { [key: string]: any }) {
+  return request<API.ResultInteger>('/group/delete', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -106,12 +106,27 @@ export async function listMyGroupVoByPage(
   });
 }
 
-/** 此处后端没有提供注释 POST /group/update/name */
+/** 此处后端没有提供注释 POST /group/update/info */
 export async function updateGroupByGid(
-  body: API.GroupUpdateRequest,
+  body: API.GroupUpdateInfoRequest,
   options?: { [key: string]: any },
 ) {
-  return request<API.ResultBoolean>('/group/update/name', {
+  return request<API.ResultBoolean>('/group/update/info', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** 此处后端没有提供注释 POST /group/update/order */
+export async function updateGroupOrder(
+  body: API.GroupUpdateOrderRequest,
+  options?: { [key: string]: any },
+) {
+  return request<API.ResultBoolean>('/group/update/order', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -22,6 +22,8 @@ public interface LinkMapper extends BaseMapper<Link>
     * 根据gid和nickName查询分页短链接列表
     */
     IPage<Link> queryLinksByGidAndNickName(Page<Link> page, @Param("gid") String gid, @Param("nickName") String nickName);
+
+    int updateGidByOldGid(@Param("oldGid") String oldGid, @Param("newGid") String newGid);
 }
 
 

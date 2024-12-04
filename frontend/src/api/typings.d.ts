@@ -115,7 +115,11 @@ declare namespace API {
   type GroupAddRequest = {
     groupName: string;
     description?: string;
-    sortOrder: number;
+  };
+
+  type GroupDeleteRequest = {
+    gid: string;
+    newGroupId?: string;
   };
 
   type GroupEditRequest = {
@@ -129,6 +133,8 @@ declare namespace API {
     gid?: string;
     name?: string;
     linkCount?: number;
+    sortOrder?: number;
+    createTime?: string;
   };
 
   type GroupQueryRequest = {
@@ -145,11 +151,16 @@ declare namespace API {
     userId?: number;
   };
 
-  type GroupUpdateRequest = {
-    gid?: string;
+  type GroupUpdateInfoRequest = {
+    gid: string;
     name?: string;
     description?: string;
     sortOrder?: number;
+  };
+
+  type GroupUpdateOrderRequest = {
+    gid: string;
+    offset: number;
   };
 
   type GroupVO = {
@@ -1128,6 +1139,12 @@ declare namespace API {
   type ResultGroupVO = {
     code?: number;
     data?: GroupVO;
+    message?: string;
+  };
+
+  type ResultInteger = {
+    code?: number;
+    data?: number;
     message?: string;
   };
 

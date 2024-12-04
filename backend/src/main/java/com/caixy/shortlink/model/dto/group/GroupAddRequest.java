@@ -30,12 +30,4 @@ public class GroupAddRequest extends BaseSerializablePayload
     */
     @Size(max = 100, min = 1, message = "分组描述长度在1-100之间")
     private String description;
-
-    /**
-    * 分组权重
-    */
-    @Min(0)
-    @Max(Integer.MAX_VALUE - 1)
-    @NotNull
-    private Integer sortOrder;
 }

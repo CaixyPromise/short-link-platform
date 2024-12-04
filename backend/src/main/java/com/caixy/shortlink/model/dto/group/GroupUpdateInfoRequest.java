@@ -1,9 +1,7 @@
 package com.caixy.shortlink.model.dto.group;
 
 import com.caixy.shortlink.common.BaseSerializablePayload;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -15,11 +13,12 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class GroupUpdateRequest extends BaseSerializablePayload
+public class GroupUpdateInfoRequest extends BaseSerializablePayload
 {
     /**
      * gid
      */
+    @NotBlank
     private String gid;
 
     /**
@@ -33,11 +32,4 @@ public class GroupUpdateRequest extends BaseSerializablePayload
     */
     @Size(max = 100, min = 1, message = "分组描述长度在1-100之间")
     private String description;
-
-    /**
-     * 分组权重
-     */
-    @Min(0)
-    @Max(Integer.MAX_VALUE - 1)
-    private Integer sortOrder;
 }
