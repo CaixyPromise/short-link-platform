@@ -11,24 +11,16 @@ export const metadata: Metadata = {
 
 const sidebarNavItems = [
   {
-    title: "Profile",
+    title: "个人信息",
     href: "/settings",
   },
   {
-    title: "Account",
+    title: "账号信息",
     href: "/settings/account",
   },
   {
-    title: "Appearance",
-    href: "/settings/appearance",
-  },
-  {
-    title: "Notifications",
-    href: "/settings/notifications",
-  },
-  {
-    title: "Display",
-    href: "/settings/display",
+    title: "API开放接口管理",
+    href: "/settings/api-management",
   },
 ]
 
@@ -58,16 +50,14 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
       <div className="hidden space-y-6 p-10 pb-16 md:block">
         <div className="space-y-0.5">
           <h2 className="text-2xl font-bold tracking-tight">个人设置</h2>
-          <p className="text-muted-foreground">
-            管理你的账号信息
-          </p>
+          <p className="text-muted-foreground">管理你的账号信息</p>
         </div>
         <Separator className="my-6" />
         <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
           <aside className="-mx-4 lg:w-1/5">
             <SidebarNav items={sidebarNavItems} />
           </aside>
-          <div className="flex-1 lg:max-w-2xl">{children}</div>
+          <div className="flex-1 lg:w-full">{children}</div>
         </div>
       </div>
     </>
