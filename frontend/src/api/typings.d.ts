@@ -46,10 +46,6 @@ declare namespace API {
     id: number;
   };
 
-  type getLinkAccessStatsVOByIdParams = {
-    id: number;
-  };
-
   type getLinkBrowserStatsVOByIdParams = {
     id: number;
   };
@@ -101,10 +97,10 @@ declare namespace API {
   };
 
   type Group = {
+    id?: number;
     createTime?: string;
     updateTime?: string;
     isDeleted?: number;
-    id?: number;
     gid?: string;
     name?: string;
     username?: string;
@@ -151,11 +147,18 @@ declare namespace API {
     userId?: number;
   };
 
+  type groupShortLinkStatsAccessRecordParams = {
+    requestParam: ShortLinkGroupStatsAccessRecordReqDTO;
+  };
+
+  type groupShortLinkStatsParams = {
+    requestParam: ShortLinkGroupStatsReqDTO;
+  };
+
   type GroupUpdateInfoRequest = {
     gid: string;
     name?: string;
     description?: string;
-    sortOrder?: number;
   };
 
   type GroupUpdateOrderRequest = {
@@ -176,11 +179,27 @@ declare namespace API {
     authorizationUrlRequest: GithubGetAuthorizationUrlRequest;
   };
 
+  type IPageShortLinkStatsAccessRecordRespDTO = {
+    size?: number;
+    current?: number;
+    total?: number;
+    records?: ShortLinkStatsAccessRecordRespDTO[];
+    pages?: number;
+  };
+
+  type IPageUserFeedbackInfoVO = {
+    size?: number;
+    current?: number;
+    total?: number;
+    records?: UserFeedbackInfoVO[];
+    pages?: number;
+  };
+
   type LinkAccessLogs = {
+    id?: number;
     createTime?: string;
     updateTime?: string;
     isDeleted?: number;
-    id?: number;
     fullShortUrl?: string;
     user?: string;
     ip?: string;
@@ -236,65 +255,6 @@ declare namespace API {
     user?: UserVO;
   };
 
-  type LinkAccessStats = {
-    createTime?: string;
-    updateTime?: string;
-    isDeleted?: number;
-    id?: number;
-    fullShortUrl?: string;
-    date?: string;
-    pv?: number;
-    uv?: number;
-    uip?: number;
-    hour?: number;
-    weekday?: number;
-  };
-
-  type LinkAccessStatsAddRequest = {
-    title?: string;
-    content?: string;
-    tags?: string[];
-  };
-
-  type LinkAccessStatsEditRequest = {
-    id?: number;
-    title?: string;
-    content?: string;
-    tags?: string[];
-  };
-
-  type LinkAccessStatsQueryRequest = {
-    current?: number;
-    pageSize?: number;
-    sortField?: string;
-    sortOrder?: string;
-    id?: number;
-    notId?: number;
-    searchText?: string;
-    title?: string;
-    content?: string;
-    tags?: string[];
-    userId?: number;
-  };
-
-  type LinkAccessStatsUpdateRequest = {
-    id?: number;
-    title?: string;
-    content?: string;
-    tags?: string[];
-  };
-
-  type LinkAccessStatsVO = {
-    id?: number;
-    title?: string;
-    content?: string;
-    userId?: number;
-    createTime?: string;
-    updateTime?: string;
-    tagList?: string[];
-    user?: UserVO;
-  };
-
   type LinkAddRequest = {
     originUrl: string;
     gid: string;
@@ -306,10 +266,10 @@ declare namespace API {
   };
 
   type LinkBrowserStats = {
+    id?: number;
     createTime?: string;
     updateTime?: string;
     isDeleted?: number;
-    id?: number;
     fullShortUrl?: string;
     date?: string;
     cnt?: number;
@@ -368,10 +328,10 @@ declare namespace API {
   };
 
   type LinkDeviceStats = {
+    id?: number;
     createTime?: string;
     updateTime?: string;
     isDeleted?: number;
-    id?: number;
     fullShortUrl?: string;
     date?: string;
     cnt?: number;
@@ -482,10 +442,10 @@ declare namespace API {
   };
 
   type LinkLocaleStats = {
+    id?: number;
     createTime?: string;
     updateTime?: string;
     isDeleted?: number;
-    id?: number;
     fullShortUrl?: string;
     date?: string;
     cnt?: number;
@@ -541,10 +501,10 @@ declare namespace API {
   };
 
   type LinkNetworkStats = {
+    id?: number;
     createTime?: string;
     updateTime?: string;
     isDeleted?: number;
-    id?: number;
     fullShortUrl?: string;
     date?: string;
     cnt?: number;
@@ -597,10 +557,10 @@ declare namespace API {
   };
 
   type LinkOsStats = {
+    id?: number;
     createTime?: string;
     updateTime?: string;
     isDeleted?: number;
-    id?: number;
     fullShortUrl?: string;
     date?: string;
     cnt?: number;
@@ -661,10 +621,10 @@ declare namespace API {
   };
 
   type LinkStatsToday = {
+    id?: number;
     createTime?: string;
     updateTime?: string;
     isDeleted?: number;
-    id?: number;
     fullShortUrl?: string;
     date?: string;
     todayPv?: number;
@@ -830,34 +790,6 @@ declare namespace API {
     orders?: OrderItem[];
     optimizeCountSql?: PageLinkAccessLogsVO;
     searchCount?: PageLinkAccessLogsVO;
-    optimizeJoinOfCountSql?: boolean;
-    maxLimit?: number;
-    countId?: string;
-    pages?: number;
-  };
-
-  type PageLinkAccessStats = {
-    records?: LinkAccessStats[];
-    total?: number;
-    size?: number;
-    current?: number;
-    orders?: OrderItem[];
-    optimizeCountSql?: PageLinkAccessStats;
-    searchCount?: PageLinkAccessStats;
-    optimizeJoinOfCountSql?: boolean;
-    maxLimit?: number;
-    countId?: string;
-    pages?: number;
-  };
-
-  type PageLinkAccessStatsVO = {
-    records?: LinkAccessStatsVO[];
-    total?: number;
-    size?: number;
-    current?: number;
-    orders?: OrderItem[];
-    optimizeCountSql?: PageLinkAccessStatsVO;
-    searchCount?: PageLinkAccessStatsVO;
     optimizeJoinOfCountSql?: boolean;
     maxLimit?: number;
     countId?: string;
@@ -1074,6 +1006,15 @@ declare namespace API {
     pages?: number;
   };
 
+  type PageMyFeedbackRequest = {
+    current?: number;
+    pageSize?: number;
+    sortField?: string;
+    sortOrder?: string;
+    id?: number;
+    title?: string;
+  };
+
   type PageUser = {
     records?: User[];
     total?: number;
@@ -1100,6 +1041,13 @@ declare namespace API {
     maxLimit?: number;
     countId?: string;
     pages?: number;
+  };
+
+  type PostFeedbackRequest = {
+    title: string;
+    content: string;
+    contactEmail: string;
+    contactName: string;
   };
 
   type redirectUrlParams = {
@@ -1148,15 +1096,21 @@ declare namespace API {
     message?: string;
   };
 
-  type ResultLinkAccessLogsVO = {
+  type ResultIPageShortLinkStatsAccessRecordRespDTO = {
     code?: number;
-    data?: LinkAccessLogsVO;
+    data?: IPageShortLinkStatsAccessRecordRespDTO;
     message?: string;
   };
 
-  type ResultLinkAccessStatsVO = {
+  type ResultIPageUserFeedbackInfoVO = {
     code?: number;
-    data?: LinkAccessStatsVO;
+    data?: IPageUserFeedbackInfoVO;
+    message?: string;
+  };
+
+  type ResultLinkAccessLogsVO = {
+    code?: number;
+    data?: LinkAccessLogsVO;
     message?: string;
   };
 
@@ -1262,18 +1216,6 @@ declare namespace API {
     message?: string;
   };
 
-  type ResultPageLinkAccessStats = {
-    code?: number;
-    data?: PageLinkAccessStats;
-    message?: string;
-  };
-
-  type ResultPageLinkAccessStatsVO = {
-    code?: number;
-    data?: PageLinkAccessStatsVO;
-    message?: string;
-  };
-
   type ResultPageLinkBrowserStats = {
     code?: number;
     data?: PageLinkBrowserStats;
@@ -1376,6 +1318,12 @@ declare namespace API {
     message?: string;
   };
 
+  type ResultShortLinkStatsRespDTO = {
+    code?: number;
+    data?: ShortLinkStatsRespDTO;
+    message?: string;
+  };
+
   type ResultString = {
     code?: number;
     data?: string;
@@ -1400,6 +1348,140 @@ declare namespace API {
     extractParams?: Record<string, any>;
   };
 
+  type ShortLinkGroupStatsAccessRecordReqDTO = {
+    records?: LinkAccessLogs[];
+    total?: number;
+    size?: number;
+    current?: number;
+    orders?: OrderItem[];
+    optimizeCountSql?: PageLinkAccessLogs;
+    searchCount?: PageLinkAccessLogs;
+    optimizeJoinOfCountSql?: boolean;
+    maxLimit?: number;
+    countId?: string;
+    gid?: string;
+    startDate?: string;
+    endDate?: string;
+    pages?: number;
+  };
+
+  type ShortLinkGroupStatsReqDTO = {
+    gid?: string;
+    startDate?: string;
+    endDate?: string;
+  };
+
+  type ShortLinkStatsAccessDailyRespDTO = {
+    date?: string;
+    pv?: number;
+    uv?: number;
+    uip?: number;
+  };
+
+  type shortLinkStatsAccessRecordParams = {
+    requestParam: ShortLinkStatsAccessRecordReqDTO;
+  };
+
+  type ShortLinkStatsAccessRecordReqDTO = {
+    records?: LinkAccessLogs[];
+    total?: number;
+    size?: number;
+    current?: number;
+    orders?: OrderItem[];
+    optimizeCountSql?: PageLinkAccessLogs;
+    searchCount?: PageLinkAccessLogs;
+    optimizeJoinOfCountSql?: boolean;
+    maxLimit?: number;
+    countId?: string;
+    fullShortUrl?: string;
+    gid?: string;
+    startDate?: string;
+    endDate?: string;
+    enableStatus?: number;
+    pages?: number;
+  };
+
+  type ShortLinkStatsAccessRecordRespDTO = {
+    uvType?: string;
+    browser?: string;
+    os?: string;
+    ip?: string;
+    network?: string;
+    device?: string;
+    locale?: string;
+    user?: string;
+    createTime?: string;
+  };
+
+  type ShortLinkStatsBrowserRespDTO = {
+    cnt?: number;
+    browser?: string;
+    ratio?: number;
+  };
+
+  type ShortLinkStatsDeviceRespDTO = {
+    cnt?: number;
+    device?: string;
+    ratio?: number;
+  };
+
+  type ShortLinkStatsLocaleCNRespDTO = {
+    cnt?: number;
+    locale?: string;
+    ratio?: number;
+  };
+
+  type ShortLinkStatsNetworkRespDTO = {
+    cnt?: number;
+    network?: string;
+    ratio?: number;
+  };
+
+  type ShortLinkStatsOsRespDTO = {
+    cnt?: number;
+    os?: string;
+    ratio?: number;
+  };
+
+  type shortLinkStatsParams = {
+    requestParam: ShortLinkStatsReqDTO;
+  };
+
+  type ShortLinkStatsReqDTO = {
+    fullShortUrl?: string;
+    gid?: string;
+    startDate?: string;
+    endDate?: string;
+    enableStatus?: number;
+  };
+
+  type ShortLinkStatsRespDTO = {
+    pv?: number;
+    uv?: number;
+    uip?: number;
+    daily?: ShortLinkStatsAccessDailyRespDTO[];
+    localeCnStats?: ShortLinkStatsLocaleCNRespDTO[];
+    hourStats?: number[];
+    topIpStats?: ShortLinkStatsTopIpRespDTO[];
+    weekdayStats?: number[];
+    browserStats?: ShortLinkStatsBrowserRespDTO[];
+    osStats?: ShortLinkStatsOsRespDTO[];
+    uvTypeStats?: ShortLinkStatsUvRespDTO[];
+    deviceStats?: ShortLinkStatsDeviceRespDTO[];
+    networkStats?: ShortLinkStatsNetworkRespDTO[];
+  };
+
+  type ShortLinkStatsTopIpRespDTO = {
+    cnt?: number;
+    ip?: string;
+  };
+
+  type ShortLinkStatsUvRespDTO = {
+    cnt?: number;
+    uvType?: string;
+    ratio?: number;
+  };
+
   type updateLinkStatusParams = {
     groupId: string;
     linkId: number;
@@ -1415,10 +1497,10 @@ declare namespace API {
   };
 
   type User = {
+    id?: number;
     createTime?: string;
     updateTime?: string;
     isDeleted?: number;
-    id?: number;
     userAccount?: string;
     nickName?: string;
     userPassword?: string;
@@ -1435,6 +1517,14 @@ declare namespace API {
     userAccount?: string;
     userAvatar?: string;
     userRole?: string;
+  };
+
+  type UserFeedbackInfoVO = {
+    title?: string;
+    contactEmail?: string;
+    contactName?: string;
+    isSolve?: number;
+    replayTime?: string;
   };
 
   type userLoginByWxOpenParams = {

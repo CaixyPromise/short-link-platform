@@ -8,8 +8,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 import com.caixy.shortlink.common.BaseEntity;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
 /**
  * 设备统计表
@@ -18,12 +17,10 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @TableName(value ="t_link_device_stats")
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class LinkDeviceStats extends BaseEntity implements Serializable {
-    /**
-     * ID
-     */
-    @TableId(type = IdType.ASSIGN_ID)
-    private Long id;
 
     /**
      * 完整短链接
@@ -44,7 +41,4 @@ public class LinkDeviceStats extends BaseEntity implements Serializable {
      * 访问设备
      */
     private String device;
-
-    @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
 }

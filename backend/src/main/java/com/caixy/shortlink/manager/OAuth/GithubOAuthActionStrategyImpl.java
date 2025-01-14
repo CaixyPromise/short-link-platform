@@ -69,14 +69,14 @@ public class GithubOAuthActionStrategyImpl extends OAuth2ActionStrategy<
         log.info("stateMap: {}", stateMap);
         log.info("authorizationUrlRequest: {}", authorizationUrlRequest);
         log.info("url: {}", url);
-        redisUtils.setHashMap(RedisKeyEnum.GITHUB_OAUTH, stateMap, authorizationUrlRequest.getSessionId());
+        redisManager.setHashMap(RedisKeyEnum.GITHUB_OAUTH, stateMap, authorizationUrlRequest.getSessionId());
         return url;
     }
 
     @Override
     public GithubCallbackResponse doCallback(GithubCallbackRequest callbackRequest)
     {
-        HashMap<String, Object> authorizationMap = redisUtils.getHashMap(RedisKeyEnum.GITHUB_OAUTH, String.class,
+        HashMap<String, Object> authorizationMap = redisManager.getHashMap(RedisKeyEnum.GITHUB_OAUTH, String.class,
                 Object.class,
                 callbackRequest.getSessionId());
         if (authorizationMap == null)

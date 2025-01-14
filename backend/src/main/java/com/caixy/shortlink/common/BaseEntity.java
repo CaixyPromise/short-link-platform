@@ -1,10 +1,9 @@
 package com.caixy.shortlink.common;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -14,8 +13,11 @@ import java.util.Date;
  * @since 2024/11/18 1:05
  */
 @Data
-public class BaseEntity
+public class BaseEntity implements Serializable
 {
+
+    @TableId(type = IdType.ASSIGN_ID)
+    private Long id;
 
     /**
      * 创建时间
@@ -35,4 +37,6 @@ public class BaseEntity
     @TableLogic
     @TableField(fill = FieldFill.INSERT)
     private Integer isDeleted;
+
+    private static final long serialVersionUID = 1L;
 }

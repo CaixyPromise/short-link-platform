@@ -6,7 +6,7 @@ import com.caixy.shortlink.constant.CommonConstant;
 import com.caixy.shortlink.exception.BusinessException;
 import com.caixy.shortlink.model.enums.RedisKeyEnum;
 import com.caixy.shortlink.model.vo.captcha.CaptchaVO;
-import com.caixy.shortlink.utils.RedisUtils;
+import com.caixy.shortlink.manager.redis.RedisManager;
 import com.google.code.kaptcha.Producer;
 import jakarta.annotation.Resource;
 import org.springframework.util.FastByteArrayOutputStream;
@@ -31,7 +31,7 @@ import java.util.UUID;
 public abstract class CaptchaGenerationStrategy
 {
     @Resource
-    private RedisUtils redisUtils;
+    private RedisManager redisManager;
 
     protected Producer captchaProducer;
 
@@ -64,7 +64,7 @@ public abstract class CaptchaGenerationStrategy
         // 写入redis
         // 以uuid作为凭证，
         // 并设置过期时间: 5分钟
-        redisUtils.setHashMap(RedisKeyEnum.CAPTCHA_CODE,
+        redisManager.setHashMap(RedisKeyEnum.CAPTCHA_CODE,
                 resultMap,
                 request.getRequestedSessionId());
         // 过期时间5分钟
@@ -81,7 +81,7 @@ public abstract class CaptchaGenerationStrategy
         Object lastUuid = request.getSession().getAttribute(CommonConstant.CAPTCHA_SIGN);
         if (lastUuid != null)
         {
-            redisUtils.delete(RedisKeyEnum.CAPTCHA_CODE, request.getRequestedSessionId());
+            redisManager.delete(RedisKeyEnum.CAPTCHA_CODE, request.getRequestedSessionId());
         }
     }
 }

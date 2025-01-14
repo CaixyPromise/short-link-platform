@@ -71,4 +71,9 @@ public interface CommonConstant
     String BACKEND_URL = "http://localhost:7529";
 
     String URL_SUFFIX_SEPARATOR = "/";
+
+    /**
+     * ip地区接口地址
+     */
+    String IP_REMOTE_URL = "https://api.vore.top/api/IPdata";
 }

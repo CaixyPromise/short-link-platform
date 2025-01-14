@@ -12,7 +12,7 @@ import com.caixy.shortlink.manager.Email.models.captcha.EmailCaptchaConstant;
 import com.caixy.shortlink.model.dto.email.SendEmailRequest;
 import com.caixy.shortlink.model.vo.user.UserVO;
 import com.caixy.shortlink.service.EmailService;
-import com.caixy.shortlink.utils.RedisUtils;
+import com.caixy.shortlink.manager.redis.RedisManager;
 import com.caixy.shortlink.utils.ServletUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +35,7 @@ import java.util.HashMap;
 public class EmailServiceImpl implements EmailService
 {
     private final EmailSenderManager emailSenderManager;
-    private final RedisUtils redisUtils;
+    private final RedisManager redisManager;
 
     @Override
     public Boolean sendEmail(SendEmailRequest sendEmailRequest, EmailSenderEnum senderEnum, HttpServletRequest request,
@@ -84,7 +84,7 @@ public class EmailServiceImpl implements EmailService
         checkHasSend(toEmail, senderEnum);
         // 检查session是否发过同类型邮件
         Boolean hasAttributeInSession = ServletUtils.hasAttributeInSession(senderEnum.getKey());
-        boolean hasSendKey = redisUtils.hasKey(senderEnum, toEmail);
+        boolean hasSendKey = redisManager.hasKey(senderEnum, toEmail);
         ThrowUtils.throwIf(hasSendKey && hasAttributeInSession, ErrorCode.PARAMS_ERROR, "邮件已发送，请到邮箱内查收。");
         // 生成验证码
         String code = RandomUtil.randomNumbers(6);
@@ -93,7 +93,7 @@ public class EmailServiceImpl implements EmailService
         // 将需要发送的邮箱账号写入redis和session，key为业务枚举值，后续不再相信前端上传的关于该邮箱的任何值，防止中间攻击。
         ServletUtils.setAttributeInSession(senderEnum.getKey(), toEmail);
         // 将验证码存入Redis，设置过期时间为5分钟
-        redisUtils.setHashMap(senderEnum, paramsMap, toEmail);
+        redisManager.setHashMap(senderEnum, paramsMap, toEmail);
         // 异步发送邮件时，上层调用不关心发送是否成功，已配置默认线程池失败策略为丢弃消息
         emailSenderManager.doSendBySync(senderEnum, new EmailSenderDTO(toEmail), paramsMap);
         return true;
@@ -112,7 +112,7 @@ public class EmailServiceImpl implements EmailService
         // 检查目标邮箱
         ThrowUtils.throwIf(StringUtils.isBlank(toEmail), ErrorCode.PARAMS_ERROR, "邮箱不得为空");
         // 检查是否重复发送
-        boolean hasSend = redisUtils.hasKey(senderEnum, toEmail);
+        boolean hasSend = redisManager.hasKey(senderEnum, toEmail);
         if (hasSend)
         {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "邮件已发送，请到邮箱内查收。");

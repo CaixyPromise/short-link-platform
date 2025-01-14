@@ -2,122 +2,73 @@
 /* eslint-disable */
 import request from '@/lib/request';
 
-/** 此处后端没有提供注释 POST /linkAccessStats/add */
-export async function addLinkAccessStats(
-  body: API.LinkAccessStatsAddRequest,
-  options?: { [key: string]: any },
-) {
-  return request<API.ResultLong>('/linkAccessStats/add', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  });
-}
-
-/** 此处后端没有提供注释 POST /linkAccessStats/delete */
-export async function deleteLinkAccessStats(
-  body: API.DeleteRequest,
-  options?: { [key: string]: any },
-) {
-  return request<API.ResultBoolean>('/linkAccessStats/delete', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  });
-}
-
-/** 此处后端没有提供注释 POST /linkAccessStats/edit */
-export async function editLinkAccessStats(
-  body: API.LinkAccessStatsEditRequest,
-  options?: { [key: string]: any },
-) {
-  return request<API.ResultBoolean>('/linkAccessStats/edit', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  });
-}
-
-/** 此处后端没有提供注释 GET /linkAccessStats/get/vo */
-export async function getLinkAccessStatsVoById(
+/** 此处后端没有提供注释 GET /access-stats/access-logs */
+export async function shortLinkStatsAccessRecord(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.getLinkAccessStatsVOByIdParams,
+  params: API.shortLinkStatsAccessRecordParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.ResultLinkAccessStatsVO>('/linkAccessStats/get/vo', {
+  return request<API.ResultIPageShortLinkStatsAccessRecordRespDTO>('/access-stats/access-logs', {
     method: 'GET',
     params: {
       ...params,
+      requestParam: undefined,
+      ...params['requestParam'],
     },
     ...(options || {}),
   });
 }
 
-/** 此处后端没有提供注释 POST /linkAccessStats/list/page */
-export async function listLinkAccessStatsByPage(
-  body: API.LinkAccessStatsQueryRequest,
+/** 此处后端没有提供注释 GET /access-stats/access-logs/group */
+export async function groupShortLinkStatsAccessRecord(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.groupShortLinkStatsAccessRecordParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.ResultPageLinkAccessStats>('/linkAccessStats/list/page', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  return request<API.ResultIPageShortLinkStatsAccessRecordRespDTO>(
+    '/access-stats/access-logs/group',
+    {
+      method: 'GET',
+      params: {
+        ...params,
+        requestParam: undefined,
+        ...params['requestParam'],
+      },
+      ...(options || {}),
     },
-    data: body,
+  );
+}
+
+/** 此处后端没有提供注释 GET /access-stats/group */
+export async function groupShortLinkStats(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.groupShortLinkStatsParams,
+  options?: { [key: string]: any },
+) {
+  return request<API.ResultShortLinkStatsRespDTO>('/access-stats/group', {
+    method: 'GET',
+    params: {
+      ...params,
+      requestParam: undefined,
+      ...params['requestParam'],
+    },
     ...(options || {}),
   });
 }
 
-/** 此处后端没有提供注释 POST /linkAccessStats/list/page/vo */
-export async function listLinkAccessStatsVoByPage(
-  body: API.LinkAccessStatsQueryRequest,
+/** 此处后端没有提供注释 GET /access-stats/one */
+export async function shortLinkStats(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.shortLinkStatsParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.ResultPageLinkAccessStatsVO>('/linkAccessStats/list/page/vo', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  return request<API.ResultShortLinkStatsRespDTO>('/access-stats/one', {
+    method: 'GET',
+    params: {
+      ...params,
+      requestParam: undefined,
+      ...params['requestParam'],
     },
-    data: body,
-    ...(options || {}),
-  });
-}
-
-/** 此处后端没有提供注释 POST /linkAccessStats/my/list/page/vo */
-export async function listMyLinkAccessStatsVoByPage(
-  body: API.LinkAccessStatsQueryRequest,
-  options?: { [key: string]: any },
-) {
-  return request<API.ResultPageLinkAccessStatsVO>('/linkAccessStats/my/list/page/vo', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  });
-}
-
-/** 此处后端没有提供注释 POST /linkAccessStats/update */
-export async function updateLinkAccessStats(
-  body: API.LinkAccessStatsUpdateRequest,
-  options?: { [key: string]: any },
-) {
-  return request<API.ResultBoolean>('/linkAccessStats/update', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
     ...(options || {}),
   });
 }

@@ -1,8 +1,11 @@
 package com.caixy.shortlink.service.impl;
 
 import cn.hutool.core.text.StrBuilder;
+import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -11,6 +14,7 @@ import com.caixy.shortlink.constant.CommonConstant;
 import com.caixy.shortlink.exception.BusinessException;
 import com.caixy.shortlink.exception.ThrowUtils;
 import com.caixy.shortlink.manager.RDLock.DistributedLockManager;
+import com.caixy.shortlink.manager.redis.RedisManager;
 import com.caixy.shortlink.mapper.GroupMapper;
 import com.caixy.shortlink.mapper.LinkGotoMapper;
 import com.caixy.shortlink.mapper.LinkMapper;
@@ -18,6 +22,7 @@ import com.caixy.shortlink.model.convertor.link.LinkConvertor;
 import com.caixy.shortlink.model.dto.link.LinkAddRequest;
 import com.caixy.shortlink.model.dto.link.LinkQueryRequest;
 import com.caixy.shortlink.model.dto.link.LinkUpdateValidDateRequest;
+import com.caixy.shortlink.model.dto.linkAccessLogs.ShortLinkStatsRecordDTO;
 import com.caixy.shortlink.model.entity.Group;
 import com.caixy.shortlink.model.entity.Link;
 
@@ -27,13 +32,13 @@ import com.caixy.shortlink.model.vo.link.LinkCreateVO;
 import com.caixy.shortlink.model.vo.link.LinkVO;
 
 import com.caixy.shortlink.model.vo.user.UserVO;
+import com.caixy.shortlink.mq.producer.ShortLinkStatsSaveProducer;
 import com.caixy.shortlink.service.GroupService;
 import com.caixy.shortlink.service.LinkService;
-import com.caixy.shortlink.utils.DateUtils;
-import com.caixy.shortlink.utils.HashUtil;
-import com.caixy.shortlink.utils.RedisUtils;
-import com.caixy.shortlink.utils.RegexUtils;
+import com.caixy.shortlink.utils.*;
 import com.caixy.shortlink.utils.http.HttpUtils;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -41,7 +46,6 @@ import org.redisson.api.RBloomFilter;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
@@ -51,6 +55,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.mapstruct.ap.internal.gem.SubclassMappingsGem.build;
 
@@ -68,13 +74,14 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
     private final LinkGotoMapper linkGotoMapper;
     private final GroupMapper groupMapper;
     private final DistributedLockManager distributedLockManager;
-    private final RedisUtils redisUtils;
-
-    private static final LinkConvertor linkConvertor = LinkConvertor.INSTANCE;
+    private final RedisManager redisManager;
     private final GroupService groupService;
+    private final ShortLinkStatsSaveProducer shortLinkStatsSaveProducer;
 
     private RBloomFilter<String> shortLinkFilter;
-    private final static int MAX_RETRY_GENERATE_SHORT_LINK = 10;
+
+    private static final int MAX_RETRY_GENERATE_SHORT_LINK = 10;
+    private static final LinkConvertor linkConvertor = LinkConvertor.INSTANCE;
 
     @Value("${short-link.default.domain}")
     private String defaultDomain;
@@ -92,20 +99,15 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
         }
     }
 
-    /**
-     * 跳转链接逻辑
-     * @param shortUrl 用户的访问的完整url
-     * @param shortUri 用户的访问的uri (短链后缀)
-     * @return 重定向的链接(校验和数据校验通过，返回原链接，反之返回notFound链接)
-     */
+
     @Override
-    public String redirectShortLink(String shortUrl, String shortUri)
+    public String redirectShortLink(String shortUrl, String shortUri, HttpServletRequest request, HttpServletResponse response)
     {
-        log.info("redirectShortLink: shortUrl={}, shortUri={}", shortUrl, shortUri);
         // 1. 检查redis缓存是否存在目标链接
         String originUrl = getShortLinkFormCache(shortUrl);
         if (StringUtils.isNotBlank(originUrl))
         {
+            shortLinkStatsSaveProducer.sendMessage(buildLinkStatsRecordAndSetUser(shortUrl, request, response));
             return originUrl;
         }
         // 2. 检查布隆过滤器是否存在目标链接
@@ -126,6 +128,7 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
                     String originLinkInLambda = getShortLinkFormCache(shortUrl);
                     if (StringUtils.isNotBlank(originLinkInLambda))
                     {
+                        shortLinkStatsSaveProducer.sendMessage(buildLinkStatsRecordAndSetUser(shortUrl, request, response));
                         return originLinkInLambda;
                     }
                     // 2. 检查是否是无效链接
@@ -171,18 +174,15 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
                         return notFoundUri;
                     }
                     // 3.2.3 校验通过，写入缓存，同时返回
-                    redisUtils.setString(RedisKeyEnum.TARGET_SHORT_LINK, link.getOriginUrl(), shortUrl);
+                    setShortLinkToCache(link);
                     log.info("成功跳转: {}", shortUrl);
+                    shortLinkStatsSaveProducer.sendMessage(buildLinkStatsRecordAndSetUser(shortUrl, request, response));
+
                     return link.getOriginUrl();
                 }, shortUrl);
     }
 
-    /**
-     * 校验数据
-     *
-     * @param link
-     * @param add  对创建的数据进行校验
-     */
+
     @Override
     public void validLink(Link link, boolean add)
     {
@@ -203,14 +203,6 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
         checkLinkValidDate(link);
     }
 
-
-    /**
-     * 从页面添加的短链接
-     *
-     * @author CAIXYPROMISE
-     * @version 1.0
-     * @version 2024/11/22 17:55
-     */
     @Transactional(rollbackFor = Exception.class)
     @Override
     public LinkCreateVO addShortLinkFormWeb(LinkAddRequest linkAddRequest)
@@ -245,8 +237,7 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
                                     .gid(linkAddRequest.getGid())
                                     .fullShortUrl(finalShortLink)
                                     .build();
-        try
-        {
+        try {
             baseMapper.insert(link);
             linkGotoMapper.insert(linkGoto);
         }
@@ -264,51 +255,6 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
                            .build();
     }
 
-    /**
-     * 生成短链接后缀
-     *
-     * @author CAIXYPROMISE
-     * @version 1.0
-     * @version 2024/11/18 1:48
-     */
-    private String generateShortLinkSuffix(LinkAddRequest linkAddRequest)
-    {
-        int retryCount = 0;
-        String shortLinkSuffix = null;
-        do
-        {
-            shortLinkSuffix = HashUtil.doHashToBase62(
-                    linkAddRequest.getOriginUrl() + String.format("%s%s%s",
-                            System.currentTimeMillis(),
-                            UUID.randomUUID(),
-                            RandomUtil.randomString(5)));
-        } while (shortLinkSuffixExist(defaultDomain
-                                      + CommonConstant.URL_SUFFIX_SEPARATOR
-                                      + shortLinkSuffix)
-                 && ++retryCount < MAX_RETRY_GENERATE_SHORT_LINK);
-        if (retryCount >= MAX_RETRY_GENERATE_SHORT_LINK)
-        {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "生成短链接过于频繁，请稍后再试");
-        }
-        return shortLinkSuffix;
-    }
-
-    /**
-     * 判断后缀是否存在
-     *
-     * @author CAIXYPROMISE
-     * @version 1.0
-     * @version 2024/11/18 1:47
-     */
-    private boolean shortLinkSuffixExist(String suffix)
-    {
-        // 如果布隆过滤器内发现不存在，去数据库确认一遍
-        if (StringUtils.isNotBlank(suffix) && !shortLinkFilter.contains(suffix))
-        {
-            return this.baseMapper.findShortLinkBySuffix(suffix) != null;
-        }
-        return false;
-    }
 
     @Override
     public Page<LinkVO> getLinkVOPage(LinkQueryRequest linkQueryRequest, String nickName)
@@ -359,13 +305,7 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
         return isSuccess;
     }
 
-    /**
-     * 根据用户的链接更新有效期
-     *
-     * @author CAIXYPROMISE
-     * @version 1.0
-     * @version 2024/11/29 3:21
-     */
+
     @Override
     public Boolean updateLinkValidDate(LinkUpdateValidDateRequest linkUpdateValidDateRequest, UserVO userVO) {
         // 1. 根据用户获取对应分组内对应id的链接信息
@@ -382,12 +322,13 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
     }
 
     /**
-     * 批量根据链接将其迁移分组
+     * 更新分组
+     *
      * @author CAIXYPROMISE
      * @version 1.0
-     * @version 2024/11/29 14:18
+     * @version 2025/1/13 19:38
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public Boolean moveLinksToGroup(String groupId, String newGroupId, Collection<Long> linkIds, UserVO loginUser)
     {
@@ -408,14 +349,71 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
                               .eq(Link::getIsDeleted, CommonConstant.NOT_DELETE_FLAG);
         List<Link> linkList = list(linkLambdaQueryWrapper);
         // 2.1 检查链接是否存在, 数量是否匹配
-        // tips: 这里不需要校验链接是不是操作人的，因为前面已经校验过分组信息了，分组与用户强绑定
+        // tips: 这里不需要校验链接是不是操作人的，因为前面已经校验过分组信息了，分组与用户强绑定, 后续如果有需要团队检查再做确认
         if (linkList.isEmpty() || linkList.size() != linkIds.size()) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "链接不存在");
         }
         // 3. 修改分组
-        linkList.forEach(link -> link.setGid(newGroupId));
-        return this.updateBatchById(linkList);
+        Set<String> shortUrlList = new HashSet<>();
+        linkList.forEach(link -> {
+            link.setGid(newGroupId);
+            shortUrlList.add(link.getFullShortUrl());
+        });
+        LambdaUpdateWrapper<LinkGoto> linkGotoUpdateWrapper = new LambdaUpdateWrapper<>();
+        linkGotoUpdateWrapper.set(LinkGoto::getGid, newGroupId)
+                              .in(LinkGoto::getFullShortUrl, shortUrlList);
+        // 4. 更新数据库
+        return this.updateBatchById(linkList) && linkGotoMapper.update(null, linkGotoUpdateWrapper) > 0;
     }
+
+    private ShortLinkStatsRecordDTO buildLinkStatsRecordAndSetUser(String fullShortUrl, HttpServletRequest request, HttpServletResponse response) {
+        AtomicBoolean uvFirstFlag = new AtomicBoolean();
+        Cookie[] cookies = request.getCookies();
+        AtomicReference<String> uv = new AtomicReference<>();
+        Runnable addResponseCookieTask = () -> {
+            uv.set(UUID.randomUUID().toString());
+            Cookie uvCookie = new Cookie("uv", uv.get());
+            // 设置 cookie 的过期时间为 30 天（单位 秒）
+            uvCookie.setMaxAge((int) TimeUnit.DAYS.toSeconds(30));
+            uvCookie.setPath(StrUtil.sub(fullShortUrl, fullShortUrl.indexOf("/"), fullShortUrl.length()));
+            response.addCookie(uvCookie);
+            uvFirstFlag.set(Boolean.TRUE);
+            redisManager.addToSet(RedisKeyEnum.LINK_STATS_UV_KEY, uv.get(), fullShortUrl);
+        };
+        if (ArrayUtil.isNotEmpty(cookies)) {
+            Arrays.stream(cookies)
+                  .filter(each -> Objects.equals(each.getName(), "uv"))
+                  .findFirst()
+                  .map(Cookie::getValue)
+                  .ifPresentOrElse(each -> {
+                      uv.set(each);
+                      Long uvAdded = redisManager.addToSet(RedisKeyEnum.LINK_STATS_UIP_KEY, each, fullShortUrl);
+                      uvFirstFlag.set(uvAdded != null && uvAdded > 0L);
+                  }, addResponseCookieTask);
+        } else {
+            addResponseCookieTask.run();
+        }
+        String remoteAddr = NetUtils.getIpAddress(request);
+        String os = NetUtils.getOs(request);
+        String browser = NetUtils.getBrowser(request);
+        String device = NetUtils.getDevice(request);
+        String network = NetUtils.getNetwork(request);
+        Long uipAdded = redisManager.addToSet(RedisKeyEnum.LINK_STATS_UIP_KEY, remoteAddr, fullShortUrl);
+        boolean uipFirstFlag = uipAdded != null && uipAdded > 0L;
+        return ShortLinkStatsRecordDTO.builder()
+                                      .fullShortUrl(fullShortUrl)
+                                      .uv(uv.get())
+                                      .uvFirstFlag(uvFirstFlag.get())
+                                      .uipFirstFlag(uipFirstFlag)
+                                      .remoteAddr(remoteAddr)
+                                      .os(os)
+                                      .browser(browser)
+                                      .device(device)
+                                      .network(network)
+                                      .currentDate(new Date())
+                                      .build();
+    }
+
     /**
      * 根据用户获取对应分组内对应id的链接信息
      *
@@ -448,7 +446,7 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
      */
     private boolean isInvalidLink(String url)
     {
-        String urlInCache = redisUtils.getString(RedisKeyEnum.INVALID_SHORT_LINK, url);
+        String urlInCache = redisManager.getString(RedisKeyEnum.INVALID_SHORT_LINK, url);
         return StringUtils.isNotBlank(urlInCache);
     }
 
@@ -461,7 +459,7 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
      */
     private void setInvalidLink(String url)
     {
-        redisUtils.setString(RedisKeyEnum.INVALID_SHORT_LINK, "1", url);
+        redisManager.setString(RedisKeyEnum.INVALID_SHORT_LINK, "1", url);
     }
 
     /**
@@ -475,7 +473,7 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
     {
         if (StringUtils.isNotBlank(shortUrl))
         {
-            Link linkOnCache = redisUtils.getObject(RedisKeyEnum.TARGET_SHORT_LINK, Link.class, shortUrl).orElse(null);
+            Link linkOnCache = redisManager.getObject(RedisKeyEnum.TARGET_SHORT_LINK, Link.class, shortUrl).orElse(null);
             if (linkOnCache != null)
             {
                 if (Objects.equals(linkOnCache.getEnableStatus(), CommonConstant.ENABLE_STATUS)) {
@@ -497,7 +495,7 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
     {
         if (link.getValidDateType().equals(ShortLinkDateType.PERMANENT.getCode())) {
             // 永久有效，直接存储到 Redis
-            redisUtils.setObject(RedisKeyEnum.TARGET_SHORT_LINK, link, link.getFullShortUrl());
+            redisManager.setObject(RedisKeyEnum.TARGET_SHORT_LINK, link, link.getFullShortUrl());
             log.info("Link [{}] cached in Redis with an expiration time of [{}]", link.getFullShortUrl(), "Permanent");
             return;
         }
@@ -509,7 +507,7 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
             return;
         }
         long expireTimeSeconds = TimeUnit.MILLISECONDS.toSeconds(expireTimeMillis);
-        redisUtils.setObject(RedisKeyEnum.TARGET_SHORT_LINK, link, expireTimeSeconds, link.getFullShortUrl());
+        redisManager.setObject(RedisKeyEnum.TARGET_SHORT_LINK, link, expireTimeSeconds, link.getFullShortUrl());
         log.info("Link [{}] cached in Redis with an expiration time of [{}] seconds", link.getFullShortUrl(), expireTimeSeconds);
     }
 
@@ -529,10 +527,54 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
 
             ThrowUtils.throwIf(DateUtils.isBeforeNow(validDateStart),
                     ErrorCode.PARAMS_ERROR, "有效期的开始时间不能早于当前时间");
-            log.info("有效期的开始时间: {}", validDateStart);
-            log.info("有效期的结束时间: {}", validDateEnd);
             ThrowUtils.throwIf(!DateUtils.isAfter(validDateEnd, validDateStart),
                     ErrorCode.PARAMS_ERROR, "有效期的结束时间必须晚于开始时间");
         }
     }
+    /**
+     * 生成短链接后缀
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @version 2024/11/18 1:48
+     */
+    private String generateShortLinkSuffix(LinkAddRequest linkAddRequest)
+    {
+        int retryCount = 0;
+        String shortLinkSuffix = null;
+        do
+        {
+            shortLinkSuffix = HashUtil.doHashToBase62(
+                    linkAddRequest.getOriginUrl() + String.format("%s%s%s",
+                            System.currentTimeMillis(),
+                            UUID.randomUUID(),
+                            RandomUtil.randomString(5)));
+        } while (shortLinkSuffixExist(defaultDomain
+                                      + CommonConstant.URL_SUFFIX_SEPARATOR
+                                      + shortLinkSuffix)
+                 && ++retryCount < MAX_RETRY_GENERATE_SHORT_LINK);
+        if (retryCount >= MAX_RETRY_GENERATE_SHORT_LINK)
+        {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "生成短链接过于频繁，请稍后再试");
+        }
+        return shortLinkSuffix;
+    }
+
+    /**
+     * 判断后缀是否存在
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @version 2024/11/18 1:47
+     */
+    private boolean shortLinkSuffixExist(String suffix)
+    {
+        // 如果布隆过滤器内发现不存在，去数据库确认一遍
+        if (StringUtils.isNotBlank(suffix) && !shortLinkFilter.contains(suffix))
+        {
+            return this.baseMapper.findShortLinkBySuffix(suffix) != null;
+        }
+        return false;
+    }
+
 }

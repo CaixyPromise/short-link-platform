@@ -20,4 +20,57 @@
         cnt,device,create_time,
         update_time,is_deleted
     </sql>
+
+    <!-- 记录访问设备监控数据 -->
+    <insert id="shortLinkDeviceState" parameterType="com.caixy.shortlink.model.entity.LinkDeviceStats">
+        INSERT INTO
+            t_link_device_stats (full_short_url, date, cnt, device, create_time, update_time, is_deleted)
+        VALUES(
+                  #{linkDeviceStats.fullShortUrl},
+                  #{linkDeviceStats.date},
+                  #{linkDeviceStats.cnt},
+                  #{linkDeviceStats.device},
+                  NOW(), NOW(), 0
+              )
+        ON DUPLICATE KEY UPDATE
+            cnt = cnt + #{linkDeviceStats.cnt};
+    </insert>
+
+    <!-- 根据短链接获取指定日期内访问设备监控数据 -->
+    <select id="listDeviceStatsByShortLink" parameterType="com.caixy.shortlink.model.dto.linkAccessStats.ShortLinkStatsReqDTO" resultType="com.caixy.shortlink.model.entity.LinkDeviceStats">
+        SELECT
+            tlds.device,
+            SUM(tlds.cnt) AS cnt
+        FROM
+            t_link tl
+                INNER JOIN t_link_device_stats tlds
+                           ON tl.full_short_url = tlds.full_short_url
+        WHERE
+            tlds.full_short_url = #{param.fullShortUrl}
+          AND tl.gid = #{param.gid}
+          AND tl.is_deleted = 0
+          AND tl.enable_status = #{param.enableStatus}
+          AND tlds.date BETWEEN #{param.startDate} AND #{param.endDate}
+        GROUP BY
+            tlds.full_short_url, tl.gid, tlds.device;
+    </select>
+
+    <!-- 根据分组获取指定日期内访问设备监控数据 -->
+    <select id="listDeviceStatsByGroup" parameterType="com.caixy.shortlink.model.dto.linkAccessStats.ShortLinkGroupStatsReqDTO" resultType="com.caixy.shortlink.model.entity.LinkDeviceStats">
+        SELECT
+            tlds.device,
+            SUM(tlds.cnt) AS cnt
+        FROM
+            t_link tl
+                INNER JOIN t_link_device_stats tlds
+                           ON tl.full_short_url = tlds.full_short_url
+        WHERE
+            tl.gid = #{param.gid}
+          AND tl.is_deleted = 0
+          AND tl.enable_status = '0'
+          AND tlds.date BETWEEN #{param.startDate} AND #{param.endDate}
+        GROUP BY
+            tl.gid, tlds.device;
+    </select>
+
 </mapper>

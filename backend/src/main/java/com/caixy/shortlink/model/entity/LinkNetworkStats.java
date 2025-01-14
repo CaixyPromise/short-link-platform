@@ -8,8 +8,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 import com.caixy.shortlink.common.BaseEntity;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
 /**
  * 网络统计表
@@ -18,13 +17,10 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @TableName(value ="t_link_network_stats")
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class LinkNetworkStats extends BaseEntity implements Serializable {
-    /**
-     * ID
-     */
-    @TableId(type = IdType.ASSIGN_ID)
-    private Long id;
-
     /**
      * 完整短链接
      */
@@ -45,6 +41,4 @@ public class LinkNetworkStats extends BaseEntity implements Serializable {
      */
     private String network;
 
-    @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
 }

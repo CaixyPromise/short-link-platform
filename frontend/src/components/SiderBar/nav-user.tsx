@@ -5,7 +5,7 @@ import {
     Bell,
     ChevronsUpDown,
     CreditCard,
-    LogOut,
+    LogOut, Settings,
     Sparkles,
 } from "lucide-react"
 
@@ -78,26 +78,28 @@ export function NavUser() {
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuGroup>
-                            <DropdownMenuItem>
-                                <Sparkles />
-                                Upgrade to Pro
+                            <DropdownMenuItem onClick={()=>{
+                                router.push('/settings')
+                            }}>
+                                <Settings />
+                                个人设置
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
-                        <DropdownMenuGroup>
-                            <DropdownMenuItem>
-                                <BadgeCheck />
-                                Account
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <CreditCard />
-                                Billing
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <Bell />
-                                Notifications
-                            </DropdownMenuItem>
-                        </DropdownMenuGroup>
+                        {/*<DropdownMenuGroup>*/}
+                        {/*    <DropdownMenuItem>*/}
+                        {/*        <BadgeCheck />*/}
+                        {/*        Account*/}
+                        {/*    </DropdownMenuItem>*/}
+                        {/*    <DropdownMenuItem>*/}
+                        {/*        <CreditCard />*/}
+                        {/*        Billing*/}
+                        {/*    </DropdownMenuItem>*/}
+                        {/*    <DropdownMenuItem>*/}
+                        {/*        <Bell />*/}
+                        {/*        Notifications*/}
+                        {/*    </DropdownMenuItem>*/}
+                        {/*</DropdownMenuGroup>*/}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => {
                             userLogout().then(()=> {
@@ -105,7 +107,7 @@ export function NavUser() {
                             })
                         }}>
                             <LogOut />
-                            Log out
+                            退出账号
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

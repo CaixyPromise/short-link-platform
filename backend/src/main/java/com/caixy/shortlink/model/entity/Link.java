@@ -24,12 +24,6 @@ import lombok.*;
 @Builder
 public class Link extends BaseEntity implements Serializable {
     /**
-     * ID
-     */
-    @TableId(type = IdType.ASSIGN_ID)
-    private Long id;
-
-    /**
      * 域名
      */
     private String domain;
@@ -119,9 +113,4 @@ public class Link extends BaseEntity implements Serializable {
      * 删除时间戳
      */
     private Long delTime;
-    
-
-    @Serial
-    @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
 }

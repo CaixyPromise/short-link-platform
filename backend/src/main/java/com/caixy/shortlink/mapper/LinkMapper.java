@@ -23,7 +23,20 @@ public interface LinkMapper extends BaseMapper<Link>
     */
     IPage<Link> queryLinksByGidAndNickName(Page<Link> page, @Param("gid") String gid, @Param("nickName") String nickName);
 
+    /**
+    * 根据旧gid更新gid-用于迁移链接迁移分组
+    */
     int updateGidByOldGid(@Param("oldGid") String oldGid, @Param("newGid") String newGid);
+
+
+    /**
+     * 短链接访问统计自增
+     */
+    void incrementStats(@Param("gid") String gid,
+                        @Param("fullShortUrl") String fullShortUrl,
+                        @Param("totalPv") Integer totalPv,
+                        @Param("totalUv") Integer totalUv,
+                        @Param("totalUip") Integer totalUip);
 }
 
 

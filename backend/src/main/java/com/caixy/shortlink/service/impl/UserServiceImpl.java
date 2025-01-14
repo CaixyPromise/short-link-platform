@@ -12,6 +12,7 @@ import com.caixy.shortlink.exception.ThrowUtils;
 import com.caixy.shortlink.manager.Email.core.EmailSenderEnum;
 import com.caixy.shortlink.manager.Email.models.captcha.EmailCaptchaConstant;
 import com.caixy.shortlink.manager.UploadManager.annotation.FileUploadActionTarget;
+import com.caixy.shortlink.manager.redis.RedisManager;
 import com.caixy.shortlink.mapper.UserMapper;
 import com.caixy.shortlink.model.convertor.user.UserConvertor;
 import com.caixy.shortlink.model.dto.file.UploadFileDTO;
@@ -54,7 +55,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements InitializingBean, UserService, FileActionStrategy
 {
     private static final UserConvertor userConvertor = UserConvertor.INSTANCE;
-    private final RedisUtils redisUtils;
+    private final RedisManager redisManager;
     private final RedissonClient redissonClient;
     private RBloomFilter<String> nickNameBloomFilter;
     private final String DEFAULT_NICK_NAME_PREFIX = "用户_";
@@ -365,7 +366,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
         if (updated)
         {
             // 删除缓存
-            redisUtils.delete(EmailSenderEnum.RESET_EMAIL, newEmail);
+            redisManager.delete(EmailSenderEnum.RESET_EMAIL, newEmail);
             // 清除登录状态-需要重新登录
             ServletUtils.removeAttributeInSession(UserConstant.USER_LOGIN_STATE);
             // 清除验证码签名
@@ -394,7 +395,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
     private void verifyEmailCaptcha(String code, String newEmail, EmailSenderEnum senderEnum)
     {
         // 从缓存获取信息
-        HashMap<String, Object> captchaInCache = redisUtils.getHashMap(senderEnum, newEmail);
+        HashMap<String, Object> captchaInCache = redisManager.getHashMap(senderEnum, newEmail);
         if (captchaInCache == null || captchaInCache.isEmpty())
         {
             throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "无效请求");

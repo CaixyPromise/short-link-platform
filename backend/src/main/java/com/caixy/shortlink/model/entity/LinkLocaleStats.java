@@ -8,8 +8,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 import com.caixy.shortlink.common.BaseEntity;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
 /**
  * 地区统计表
@@ -18,12 +17,11 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @TableName(value ="t_link_locale_stats")
 @Data
-public class LinkLocaleStats extends BaseEntity implements Serializable {
-    /**
-     * ID
-     */
-    @TableId(type = IdType.ASSIGN_ID)
-    private Long id;
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class LinkLocaleStats extends BaseEntity
+{
 
     /**
      * 完整短链接
@@ -59,8 +57,4 @@ public class LinkLocaleStats extends BaseEntity implements Serializable {
      * 国家标识
      */
     private String country;
-    
-
-    @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
 }

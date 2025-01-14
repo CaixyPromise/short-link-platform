@@ -20,4 +20,57 @@
         cnt,network,create_time,
         update_time,is_deleted
     </sql>
+
+
+    <!-- 记录访问网络监控数据 -->
+    <insert id="shortLinkNetworkState" parameterType="com.caixy.shortlink.model.entity.LinkNetworkStats">
+        INSERT INTO
+            t_link_network_stats (full_short_url, date, cnt, network, create_time, update_time, is_deleted)
+        VALUES(
+                  #{linkNetworkStats.fullShortUrl},
+                  #{linkNetworkStats.date},
+                  #{linkNetworkStats.cnt},
+                  #{linkNetworkStats.network},
+                  NOW(), NOW(), 0
+              )
+        ON DUPLICATE KEY UPDATE
+            cnt = cnt + #{linkNetworkStats.cnt};
+    </insert>
+
+    <!-- 根据短链接获取指定日期内访问网络监控数据 -->
+    <select id="listNetworkStatsByShortLink" parameterType="com.caixy.shortlink.model.dto.linkAccessStats.ShortLinkStatsReqDTO" resultType="com.caixy.shortlink.model.entity.LinkNetworkStats">
+        SELECT
+            tlns.network,
+            SUM(tlns.cnt) AS cnt
+        FROM
+            t_link tl
+                INNER JOIN t_link_network_stats tlns
+                           ON tl.full_short_url = tlns.full_short_url
+        WHERE
+            tlns.full_short_url = #{param.fullShortUrl}
+          AND tl.gid = #{param.gid}
+          AND tl.is_deleted = 0
+          AND tl.enable_status = #{param.enableStatus}
+          AND tlns.date BETWEEN #{param.startDate} AND #{param.endDate}
+        GROUP BY
+            tlns.full_short_url, tl.gid, tlns.network;
+    </select>
+
+    <!-- 根据分组获取指定日期内访问网络监控数据 -->
+    <select id="listNetworkStatsByGroup" parameterType="com.caixy.shortlink.model.dto.linkAccessStats.ShortLinkGroupStatsReqDTO" resultType="com.caixy.shortlink.model.entity.LinkNetworkStats">
+        SELECT
+            tlns.network,
+            SUM(tlns.cnt) AS cnt
+        FROM
+            t_link tl
+                INNER JOIN t_link_network_stats tlns
+                           ON tl.full_short_url = tlns.full_short_url
+        WHERE
+            tl.gid = #{param.gid}
+          AND tl.is_deleted = 0
+          AND tl.enable_status = '0'
+          AND tlns.date BETWEEN #{param.startDate} AND #{param.endDate}
+        GROUP BY
+            tl.gid, tlns.network;
+    </select>
 </mapper>

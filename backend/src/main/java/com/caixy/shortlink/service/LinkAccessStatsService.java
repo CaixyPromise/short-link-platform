@@ -1,51 +1,80 @@
 package com.caixy.shortlink.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.caixy.shortlink.model.dto.linkAccessStats.LinkAccessStatsQueryRequest;
+import com.caixy.shortlink.model.dto.linkAccessLogs.ShortLinkGroupStatsAccessRecordReqDTO;
+import com.caixy.shortlink.model.dto.linkAccessLogs.ShortLinkStatsAccessRecordReqDTO;
+import com.caixy.shortlink.model.dto.linkAccessLogs.ShortLinkStatsRecordDTO;
+import com.caixy.shortlink.model.dto.linkAccessStats.ShortLinkGroupStatsReqDTO;
+import com.caixy.shortlink.model.dto.linkAccessStats.ShortLinkStatsReqDTO;
 import com.caixy.shortlink.model.entity.LinkAccessStats;
-import com.caixy.shortlink.model.vo.linkAccessStats.LinkAccessStatsVO;
 
-import jakarta.servlet.http.HttpServletRequest;
+import com.caixy.shortlink.model.vo.linkAccessStats.ShortLinkStatsAccessRecordRespDTO;
+import com.caixy.shortlink.model.vo.linkAccessStats.ShortLinkStatsRespDTO;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 短链接访问统计服务
+ *
  * @author: CAIXYPROMISE
-*/
-public interface LinkAccessStatsService extends IService<LinkAccessStats> {
+ */
+public interface LinkAccessStatsService extends IService<LinkAccessStats>
+{
 
     /**
-     * 校验数据
+     * 保存短链接访问统计记录
      *
-     * @param linkAccessStats
-     * @param add 对创建的数据进行校验
+     * @param statsRecord 统计记录
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @version 2025/1/13 21:16
      */
-    void validLinkAccessStats(LinkAccessStats linkAccessStats, boolean add);
+    @Transactional(rollbackFor = Exception.class)
+    void saveShortLinkStats(ShortLinkStatsRecordDTO statsRecord);
 
     /**
-     * 获取查询条件
+     * 获取单个短链接监控数据
      *
-     * @param linkAccessStatsQueryRequest
-     * @return
+     * @param requestParam 获取短链接监控数据入参
+     * @return 短链接监控数据
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @version 2025/1/13 21:16
      */
-    QueryWrapper<LinkAccessStats> getQueryWrapper(LinkAccessStatsQueryRequest linkAccessStatsQueryRequest);
-    
-    /**
-     * 获取短链接访问统计封装
-     *
-     * @param linkAccessStats
-     * @param request
-     * @return
-     */
-    LinkAccessStatsVO getLinkAccessStatsVO(LinkAccessStats linkAccessStats, HttpServletRequest request);
+    ShortLinkStatsRespDTO oneShortLinkStats(ShortLinkStatsReqDTO requestParam);
 
     /**
-     * 分页获取短链接访问统计封装
+     * 获取分组短链接监控数据
      *
-     * @param linkAccessStatsPage
-     * @param request
-     * @return
+     * @param requestParam 获取分组短链接监控数据入参
+     * @return 分组短链接监控数据
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @version 2025/1/13 21:17
      */
-    Page<LinkAccessStatsVO> getLinkAccessStatsVOPage(Page<LinkAccessStats> linkAccessStatsPage, HttpServletRequest request);
+    ShortLinkStatsRespDTO groupShortLinkStats(ShortLinkGroupStatsReqDTO requestParam);
+
+    /**
+     * 访问单个短链接指定时间内访问记录监控数据
+     *
+     * @param requestParam 获取短链接监控访问记录数据入参
+     * @return 访问记录监控数据
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @version 2025/1/13 21:17
+     */
+    IPage<ShortLinkStatsAccessRecordRespDTO> shortLinkStatsAccessRecord(
+            ShortLinkStatsAccessRecordReqDTO requestParam);
+
+    /**
+     * 访问分组短链接指定时间内访问记录监控数据
+     * @param requestParam 获取分组短链接监控访问记录数据入参
+     * @return 分组访问记录监控数据
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @version 2025/1/13 21:17
+     */
+    IPage<ShortLinkStatsAccessRecordRespDTO> groupShortLinkStatsAccessRecord(
+            ShortLinkGroupStatsAccessRecordReqDTO requestParam);
 }

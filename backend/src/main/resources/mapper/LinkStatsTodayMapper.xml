@@ -21,4 +21,22 @@
         today_pv,today_uv,today_uip,
         create_time,update_time,is_deleted
     </sql>
+
+    <!-- 记录今日统计监控数据 -->
+    <insert id="shortLinkTodayState" parameterType="com.caixy.shortlink.model.entity.LinkStatsToday">
+        INSERT INTO
+            t_link_stats_today (full_short_url, date, today_uv, today_pv, today_uip, create_time, update_time, is_deleted)
+        VALUES(
+                  #{linkTodayStats.fullShortUrl},
+                  #{linkTodayStats.date},
+                  #{linkTodayStats.todayUv},
+                  #{linkTodayStats.todayPv},
+                  #{linkTodayStats.todayUip},
+                  NOW(), NOW(), 0
+              )
+        ON DUPLICATE KEY UPDATE
+                             today_uv = today_uv + #{linkTodayStats.todayUv},
+                             today_pv = today_pv + #{linkTodayStats.todayPv},
+                             today_uip = today_uip + #{linkTodayStats.todayUip};
+    </insert>
 </mapper>

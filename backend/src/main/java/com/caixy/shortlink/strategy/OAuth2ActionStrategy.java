@@ -3,7 +3,7 @@ package com.caixy.shortlink.strategy;
 import com.caixy.shortlink.common.ErrorCode;
 import com.caixy.shortlink.exception.BusinessException;
 import com.caixy.shortlink.model.dto.oauth.OAuthResultResponse;
-import com.caixy.shortlink.utils.RedisUtils;
+import com.caixy.shortlink.manager.redis.RedisManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
 
@@ -24,7 +24,7 @@ public abstract class OAuth2ActionStrategy<
         GetCallbackRequestType>    // 获取回调请求类型
 {
     @Resource
-    protected RedisUtils redisUtils;
+    protected RedisManager redisManager;
 
     public abstract String getAuthorizationUrl(GetAuthorizationUrlRequestType authorizationUrlType);
 

@@ -8,8 +8,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 import com.caixy.shortlink.common.BaseEntity;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
 /**
  * 短链接访问统计表
@@ -18,6 +17,9 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @TableName(value ="t_link_access_stats")
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class LinkAccessStats extends BaseEntity implements Serializable {
     /**
      * ID

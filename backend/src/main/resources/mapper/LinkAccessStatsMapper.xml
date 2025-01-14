@@ -24,4 +24,134 @@
         hour,weekday,create_time,
         update_time,is_deleted
     </sql>
+
+    <!-- 记录基础访问监控数据 -->
+    <insert id="shortLinkStats" parameterType="com.caixy.shortlink.model.entity.LinkAccessStats">
+        INSERT INTO
+            t_link_access_stats (full_short_url, date, pv, uv, uip, hour, weekday, create_time, update_time, is_deleted)
+        VALUES(
+                  #{linkAccessStats.fullShortUrl}, #{linkAccessStats.date}, #{linkAccessStats.pv},
+                  #{linkAccessStats.uv}, #{linkAccessStats.uip}, #{linkAccessStats.hour},
+                  #{linkAccessStats.weekday}, NOW(), NOW(), 0
+              )
+        ON DUPLICATE KEY UPDATE
+                             pv = pv + #{linkAccessStats.pv},
+                             uv = uv + #{linkAccessStats.uv},
+                             uip = uip + #{linkAccessStats.uip};
+    </insert>
+
+    <!-- 根据短链接获取指定日期内基础监控数据 -->
+    <select id="listStatsByShortLink" parameterType="com.caixy.shortlink.model.dto.linkAccessStats.ShortLinkStatsReqDTO" resultType="com.caixy.shortlink.model.entity.LinkAccessStats">
+        SELECT
+            tlas.date,
+            SUM(tlas.pv) AS pv,
+            SUM(tlas.uv) AS uv,
+            SUM(tlas.uip) AS uip
+        FROM
+            t_link tl
+                INNER JOIN t_link_access_stats tlas
+                           ON tl.full_short_url = tlas.full_short_url
+        WHERE
+            tlas.full_short_url = #{param.fullShortUrl}
+          AND tl.gid = #{param.gid}
+          AND tl.is_deleted = 0
+          AND tl.enable_status = #{param.enableStatus}
+          AND tlas.date BETWEEN #{param.startDate} AND #{param.endDate}
+        GROUP BY
+            tlas.full_short_url, tl.gid, tlas.date;
+    </select>
+
+    <!-- 根据分组获取指定日期内基础监控数据 -->
+    <select id="listStatsByGroup" parameterType="com.caixy.shortlink.model.dto.linkAccessStats.ShortLinkGroupStatsReqDTO" resultType="com.caixy.shortlink.model.entity.LinkAccessStats">
+        SELECT
+            tlas.date,
+            SUM(tlas.pv) AS pv,
+            SUM(tlas.uv) AS uv,
+            SUM(tlas.uip) AS uip
+        FROM
+            t_link tl
+                INNER JOIN t_link_access_stats tlas
+                           ON tl.full_short_url = tlas.full_short_url
+        WHERE
+            tl.gid = #{param.gid}
+          AND tl.is_deleted = 0
+          AND tl.enable_status = '0'
+          AND tlas.date BETWEEN #{param.startDate} AND #{param.endDate}
+        GROUP BY
+            tl.gid, tlas.date;
+    </select>
+
+    <!-- 根据短链接获取指定日期内小时基础监控数据 -->
+    <select id="listHourStatsByShortLink" parameterType="com.caixy.shortlink.model.dto.linkAccessStats.ShortLinkStatsReqDTO" resultType="com.caixy.shortlink.model.entity.LinkAccessStats">
+        SELECT
+            tlas.hour,
+            SUM(tlas.pv) AS pv
+        FROM
+            t_link tl
+                INNER JOIN t_link_access_stats tlas
+                           ON tl.full_short_url = tlas.full_short_url
+        WHERE
+            tlas.full_short_url = #{param.fullShortUrl}
+          AND tl.gid = #{param.gid}
+          AND tl.is_deleted = 0
+          AND tl.enable_status = #{param.enableStatus}
+          AND tlas.date BETWEEN #{param.startDate} AND #{param.endDate}
+        GROUP BY
+            tlas.full_short_url, tl.gid, tlas.hour;
+    </select>
+
+    <!-- 根据分组获取指定日期内小时基础监控数据 -->
+    <select id="listHourStatsByGroup" parameterType="com.caixy.shortlink.model.dto.linkAccessStats.ShortLinkGroupStatsReqDTO" resultType="com.caixy.shortlink.model.entity.LinkAccessStats">
+        SELECT
+            tlas.hour,
+            SUM(tlas.pv) AS pv
+        FROM
+            t_link tl
+                INNER JOIN t_link_access_stats tlas
+                           ON tl.full_short_url = tlas.full_short_url
+        WHERE
+            tl.gid = #{param.gid}
+          AND tl.is_deleted = 0
+          AND tl.enable_status = '0'
+          AND tlas.date BETWEEN #{param.startDate} AND #{param.endDate}
+        GROUP BY
+            tl.gid, tlas.hour;
+    </select>
+
+    <!-- 根据短链接获取指定日期内小时基础监控数据 -->
+    <select id="listWeekdayStatsByShortLink" parameterType="com.caixy.shortlink.model.dto.linkAccessStats.ShortLinkStatsReqDTO" resultType="com.caixy.shortlink.model.entity.LinkAccessStats">
+        SELECT
+            tlas.weekday,
+            SUM(tlas.pv) AS pv
+        FROM
+            t_link tl
+                INNER JOIN t_link_access_stats tlas
+                           ON tl.full_short_url = tlas.full_short_url
+        WHERE
+            tlas.full_short_url = #{param.fullShortUrl}
+          AND tl.gid = #{param.gid}
+          AND tl.is_deleted = 0
+          AND tl.enable_status = #{param.enableStatus}
+          AND tlas.date BETWEEN #{param.startDate} AND #{param.endDate}
+        GROUP BY
+            tlas.full_short_url, tl.gid, tlas.weekday;
+    </select>
+
+    <!-- 根据分组获取指定日期内小时基础监控数据 -->
+    <select id="listWeekdayStatsByGroup" parameterType="com.caixy.shortlink.model.dto.linkAccessStats.ShortLinkGroupStatsReqDTO" resultType="com.caixy.shortlink.model.entity.LinkAccessStats">
+        SELECT
+            tlas.weekday,
+            SUM(tlas.pv) AS pv
+        FROM
+            t_link tl
+                INNER JOIN t_link_access_stats tlas
+                           ON tl.full_short_url = tlas.full_short_url
+        WHERE
+            tl.gid = #{param.gid}
+          AND tl.is_deleted = 0
+          AND tl.enable_status = '0'
+          AND tlas.date BETWEEN #{param.startDate} AND #{param.endDate}
+        GROUP BY
+            tl.gid, tlas.weekday;
+    </select>
 </mapper>

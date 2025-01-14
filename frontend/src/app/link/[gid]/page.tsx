@@ -10,7 +10,7 @@ import {Condition, Conditional} from "@/components/Conditional";
 import React, {useEffect, useState} from "react";
 import {Button} from "@/components/ui/button";
 import CopyableText from "@/components/CopyableText";
-import {ArrowBigRight, Info, Plus} from "lucide-react";
+import {ArrowBigRight, Info, Plus, Trash} from "lucide-react";
 import ShortLinkQRCode from "@/app/link/components/ShortLinkQRCode";
 import {AddShortLinkForm} from "@/app/link/components/AddShortLinkForm";
 import {default_operation_button, TableActionBar} from "@/components/DataTable/components/TableActionBar";
@@ -24,6 +24,11 @@ import {Empty} from "@/components/Empty/empty";
 import {EmptyIcon} from "@/components/Empty/empty-icon";
 import {EmptyDescription} from "@/components/Empty/empty-description";
 import EmptyDescriptionText from "@/components/Empty/empty-description-text";
+import {
+    ConfirmationModalProvider,
+    useConfirmationModal
+} from "@/components/confirmation-modal/ConfirmationModalContext";
+import {useLinkStatsModal} from "@/components/LinkStatsModal/context";
 
 
 const MetricItem: React.FC<{
@@ -38,10 +43,11 @@ const MetricItem: React.FC<{
     );
 };
 const columns: Array<DateTableColumnProps<API.LinkVO>> = (
-    onShare: (record: API.LinkVO) => void,
     groupId: string,
     onClickValidTimeCell: (record: API.LinkVO) => void,
-    onClickUpdateGroupModal: (record: API.LinkVO) => void
+    onClickUpdateGroupModal: (record: API.LinkVO) => void,
+    onClickDeleteGroupModal: (record: API.LinkVO) => void,
+    onClickStatsModal: (record: API.LinkVO) => void
 ) => ([
     {
         title: "短链id",
@@ -130,30 +136,18 @@ const columns: Array<DateTableColumnProps<API.LinkVO>> = (
         }
     },
     {
-        title: "创建类型",
-        dataIndex: "createdType",
-        valueType: "enums",
-        enumMap: {
-            0: {
-                text: "接口创建",
-            },
-            1: {
-                text: "控制台创建"
-            }
-        }
-    },
-    {
         title: "有效期",
         dataIndex: "validDate",
         align: "center",
         className: "text-center align-middle",
         render: (text, record) => {
             return (
-                <div className="flex flex-col items-center cursor-pointer transition-all duration-200 hover:bg-accent/10  rounded-md p-2 hover:ring-1"
-                     onClick={(e) => {
-                    e.stopPropagation()
-                    onClickValidTimeCell(record)
-                }}>
+                <div
+                    className="flex flex-col items-center cursor-pointer transition-all duration-200 hover:bg-accent/10  rounded-md p-2 hover:ring-1"
+                    onClick={(e) => {
+                        e.stopPropagation()
+                        onClickValidTimeCell(record)
+                    }}>
                     <Conditional>
                         <Condition.Switch value={record.validDateType}>
                             <Condition.Case case={ValidDateEnum.PERMANENT}>
@@ -183,15 +177,25 @@ const columns: Array<DateTableColumnProps<API.LinkVO>> = (
                                     </div>
                                 </div>
                             </Condition.Case>
-
-
                         </Condition.Switch>
                     </Conditional>
                 </div>
             )
         }
     },
-
+    {
+        title: "创建类型",
+        dataIndex: "createdType",
+        valueType: "enums",
+        enumMap: {
+            0: {
+                text: "接口创建",
+            },
+            1: {
+                text: "控制台创建"
+            }
+        }
+    },
     {
         title: "数据指标",
         toolTip: (
@@ -207,7 +211,6 @@ const columns: Array<DateTableColumnProps<API.LinkVO>> = (
                 <MetricItem label="历史 PV" value={totalPv}/>
                 <MetricItem label="历史 UV" value={totalUv}/>
                 <MetricItem label="历史 UIP" value={totalUip}/>
-                <MetricItem label="点击量" value={clickNum}/>
             </div>)
         }
     },
@@ -215,9 +218,11 @@ const columns: Array<DateTableColumnProps<API.LinkVO>> = (
         title: "操作",
         render: (_, record) => {
             return (
-                <div className="flex gap-1">
-                    <Button variant="link" onClick={()=>onClickUpdateGroupModal(record)}>更换分组</Button>
-                    <Button variant="link" className="text-red-600">删除</Button>
+                <div className="flex gap-0.5">
+                    <Button variant="link" onClick={() => onClickUpdateGroupModal(record)}>更换分组</Button>
+                    <Button variant="link" onClick={() => onClickStatsModal(record)}>访问数据</Button>
+                    <Button variant="link" onClick={() => onClickDeleteGroupModal(record)}
+                            className="text-red-600">删除</Button>
                 </div>
             )
         }
@@ -225,18 +230,17 @@ const columns: Array<DateTableColumnProps<API.LinkVO>> = (
 ]);
 
 export default function LinkTablePage() {
-    const [qrCodeVisible, setQrCodeVisible] = useState<boolean>(false);
-    const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
-    const [qrCodeName, setQrCodeName] = useState<string>('');
     const [shortModalVisible, setShortModalVisible] = useState<boolean>(false);
     const [validFormModalVisible, setValidFormModalVisible] = useState<boolean>(false);
     const [currentRow, setCurrentRow] = useState<API.LinkVO | null>(null);
-    const [ updateGroupModalVisible ,setUpdateGroupModalVisible] = useState<boolean>(false)
+    const [updateGroupModalVisible, setUpdateGroupModalVisible] = useState<boolean>(false)
     const params = useParams();
     const {gid: groupId} = params;
     const router = useRouter();
     const dispatch = useAppDispatch();
     const currentGroup = useAppSelector(state => state.Group);
+    const {showConfirmation} = useConfirmationModal()
+    const {setStatsModalVisible, setLinkItem} = useLinkStatsModal();
 
     useEffect(() => {
         if (!groupId) {
@@ -248,7 +252,6 @@ export default function LinkTablePage() {
             dispatch(updateCurrentGroupByGid(groupId));
         }
     }, [groupId, dispatch, router]);
-
 
     const fetchLink = async (params: any,
                              sort: Record<string, SortOrder>,
@@ -263,12 +266,6 @@ export default function LinkTablePage() {
             data: data?.records || [],
             total: Number(data?.total) || 0,
         }
-    }
-
-    const createShareQrCode = (record: API.LinkVO) => {
-        setQrCodeUrl(record.fullShortUrl);
-        setQrCodeName(record.linkName);
-        setQrCodeVisible(true);
     }
 
     // 点击选项时更新当前选项并显示弹窗
@@ -288,18 +285,42 @@ export default function LinkTablePage() {
         setCurrentRow(null); // 重置当前行
     }
 
-    const onClickUpdateGroupModal= (record: API.LinkVO) => {
+    const onClickUpdateGroupModal = (record: API.LinkVO) => {
         setUpdateGroupModalVisible(true);
         setCurrentRow(record); // 设置当前行
     }
 
+    const onClickDeleteGroupModal = (record: API.LinkVO) => {
+        showConfirmation({
+            title: '删除链接',
+            description: `确定要删除链接 ${record.linkName} 吗？`,
+            onConfirm: async (record) => {
+                console.log("record: ", record)
+            },
+            ifValue: record,
+            confirmText: "确认",
+            cancelText: "取消",
+            description: (<span>确定要删除链接 {record.linkName} 吗？</span>),
+            icon: <Trash className="h-6 w-6 text-red-500"/>,
+        })
+    }
+    const onClickStatsModal = (record: API.LinkVO) => {
+        setStatsModalVisible(true);
+        setLinkItem(record)
+    }
 
 
     return (
-        <PageContainer>
+        <>
             <DataTable<API.LinkVO>
                 title={`${currentGroup?.currentGroupName}-短链列表`}
-                columns={columns(createShareQrCode, groupId, onClickValidTimeCell, onClickUpdateGroupModal)}
+                columns={columns(
+                    groupId,
+                    onClickValidTimeCell,
+                    onClickUpdateGroupModal,
+                    onClickDeleteGroupModal,
+                    onClickStatsModal
+                )}
                 request={fetchLink}
                 components={{
                     SearchArea: null,
@@ -320,7 +341,7 @@ export default function LinkTablePage() {
                     TableEmpty: (
                         <Empty>
                             <EmptyIcon>
-                                <Info className="text-blue-500 w-20 h-20 text-muted-foreground" />
+                                <Info className="text-blue-500 w-20 h-20 text-muted-foreground"/>
                             </EmptyIcon>
                             <EmptyDescription>
                                 当前分组: {currentGroup.currentGroupName} 暂无链接数据 :)
@@ -333,7 +354,7 @@ export default function LinkTablePage() {
                                     variant="ghost"
                                     className="text-red-600"
                                 >
-                                    <ArrowBigRight />
+                                    <ArrowBigRight/>
                                     去创建
                                 </Button>
                             </EmptyDescription>
@@ -354,6 +375,6 @@ export default function LinkTablePage() {
                 originGroupId={groupId}
             />
             {/*<ShortLinkQRCode name={qrCodeName} url={qrCodeUrl}/>*/}
-        </PageContainer>
+        </>
     )
 }

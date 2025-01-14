@@ -67,6 +67,14 @@ spring:
       port: ${config.redis.port}
       timeout: ${config.redis.timeout}
       #password: #todo: set redis password if needed
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
+    listener:
+      direct:
+        acknowledge-mode: manual
 
 server:
   address: 0.0.0.0
@@ -203,6 +211,10 @@ xss:
 
 login:
   type: session
+  token:
+    secret: ${encryption.key}
+    refreshTime: 20
+    refreshTimeUnit: MINUTES
 
 management:
   metrics:
@@ -241,3 +253,21 @@ short-link:
   default:
     domain: https://short.caixyowo.cn
     notFound-uri: ${server.servlet.context-path}/page/notFound
+
+rabbitmq:
+  config:
+    # 死信队列重试次数
+    retryOnDeadLetter: 3
+  exchanges:
+    - name: LinkStatsSaveExchange
+      type: direct
+      durable: true
+      autoDelete: false
+      bindings:
+        - queue: linkStatsSaveQueue
+          routingKey: link.stats.save
+          deadLetterRoutingKey: dl.link.stats.save
+          deadLetterQueue: X-DeadLetter-Link-Stats-Save-Queue
+          durable: true
+          autoDelete: false
+          exclusive: false

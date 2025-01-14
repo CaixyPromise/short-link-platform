@@ -42,7 +42,6 @@ export function DraggableMenuItem({
     handleDeleteGroupClick
 }: DraggableMenuItemProps) {
     const ref = useRef<HTMLDivElement | null>(null);
-    const { showConfirmation } = useConfirmationModal()
     const [{ handlerId }, drop] = useDrop<
         DraggableItem,
         void,

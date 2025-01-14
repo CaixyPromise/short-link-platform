@@ -10,6 +10,7 @@ import com.caixy.shortlink.common.ErrorCode;
 import com.caixy.shortlink.constant.CommonConstant;
 import com.caixy.shortlink.exception.BusinessException;
 import com.caixy.shortlink.exception.ThrowUtils;
+import com.caixy.shortlink.manager.Authorization.AuthManager;
 import com.caixy.shortlink.mapper.GroupMapper;
 import com.caixy.shortlink.mapper.LinkMapper;
 import com.caixy.shortlink.model.convertor.group.GroupConvertor;
@@ -56,6 +57,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
     private final LinkMapper linkMapper;
     private final RedissonClient redissonClient;
     private RBloomFilter<String> gidBloomFilter;
+    private final AuthManager authManager;
 
     /**
      * 校验数据
@@ -70,14 +72,6 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
 
     }
 
-    /**
-     * 添加组
-     *
-     * @return 返回组ID
-     * @author CAIXYPROMISE
-     * @version 1.0
-     * @version 2024/11/15 1:50
-     */
     @Override
     public String addGroup(GroupAddRequest groupAddRequest, UserVO userVO)
     {
@@ -106,13 +100,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
         return group.getGid();
     }
 
-    /**
-     * 更新组名称
-     *
-     * @author CAIXYPROMISE
-     * @version 1.0
-     * @version 2024/11/30 23:37
-     */
+
     @Override
     public Boolean updateGroupInfoByGid(UserVO loginUser, GroupUpdateInfoRequest groupUpdateInfoRequest)
     {
@@ -131,13 +119,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
         return this.updateById(group);
     }
 
-    /**
-     * 获取分组列表选项
-     *
-     * @author CAIXYPROMISE
-     * @version 1.0
-     * @version 2024/11/21 0:20
-     */
+
     @Override
     public List<GroupItemVO> getMyGroupItems(String nickName)
     {
@@ -148,13 +130,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
         return baseMapper.findGroupsWithLinkCounts(nickName);
     }
 
-    /**
-     * 更新分组
-     *
-     * @return
-     * @author CAIXYPROMISE
-     * @version 1.0
-     */
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean updateOrderByGid(String gid, int offset, UserVO loginUser)
@@ -176,13 +152,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
         return baseMapper.updateById(groupToMove) > 0;
     }
 
-    /**
-     * 删除分组
-     *
-     * @return
-     * @author CAIXYPROMISE
-     * @version 1.0
-     */
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int deleteGroup(String gid, UserVO loginUser, String moveGroupId)
@@ -205,7 +175,8 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
             Group moveGroup = findByGidAndCheckAccess(moveGroupId, loginUser);
             // 将链接移动到新的分组
             int updateResult = linkMapper.updateGidByOldGid(groupToDelete.getGid(), moveGroup.getGid());
-            if (updateResult == 0 || updateResult != groupCount.size()) {
+            if (updateResult == 0 || updateResult != groupCount.size())
+            {
                 throw new BusinessException(ErrorCode.OPERATION_ERROR, "移动链接失败");
             }
             updated = updateResult;
@@ -217,13 +188,6 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
     }
 
 
-    /**
-     * 获取我的分组列表
-     *
-     * @author CAIXYPROMISE
-     * @version 1.0
-     * @version 2024/11/15 16:45
-     */
     @Override
     public Page<GroupVO> getMyGroupList(UserVO userVO, GroupQueryRequest groupQueryRequest)
     {
@@ -242,12 +206,6 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
     }
 
 
-    /**
-     * 获取查询条件
-     *
-     * @param groupQueryRequest
-     * @return
-     */
     @Override
     public QueryWrapper<Group> getQueryWrapper(GroupQueryRequest groupQueryRequest)
     {
@@ -330,7 +288,28 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
         return null;
     }
 
-    public boolean checkGidExist(String gid)
+    /**
+     * 检查 分组是否属于当前用户
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @version 2025/1/13 21:12
+     */
+    @Override
+    public void checkGroupBelongToUser(String gid)
+    {
+        UserVO loginUser = authManager.getLoginUser();
+        LambdaQueryWrapper<Group> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Group::getGid, gid)
+                    .eq(Group::getUsername, loginUser.getNickName());
+        List<Group> groupList = this.baseMapper.selectList(queryWrapper);
+        if (CollUtil.isEmpty(groupList))
+        {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "用户信息与分组标识不匹配");
+        }
+    }
+
+    private boolean checkGidExist(String gid)
     {
         if (StringUtils.isNotBlank(gid) && gidBloomFilter.contains(gid))
         {
@@ -346,7 +325,7 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
      * @version 1.0
      * @version 2024/11/15 1:47
      */
-    public void checkGroupNameExist(String groupName, String nickName)
+    private void checkGroupNameExist(String groupName, String nickName)
     {
         if (StringUtils.isBlank(groupName))
         {
@@ -362,24 +341,20 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group> implements
         }
     }
 
-    /**
-     * 根据组id查找分组, 并且检查操作权限
-     * todo: 实现分组管理权检查
-     * @author CAIXYPROMISE
-     * @version 1.0
-     * @version 2024/12/4 3:20
-     */
+
     @Override
     public Group findByGidAndCheckAccess(String gid, UserVO loginUser)
     {
         Group byGidAndNickname = baseMapper.findGroupByGid(gid);
-        if (byGidAndNickname == null) {
+        if (byGidAndNickname == null)
+        {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "分组不存在");
         }
         // 检查是否具有权限：创建者或系统管理员
         boolean isCreator = byGidAndNickname.getUsername().equals(loginUser.getNickName());
         boolean isAdmin = UserRoleEnum.ADMIN.equals(loginUser.getUserRole());
-        if (!isCreator && !isAdmin) {
+        if (!isCreator && !isAdmin)
+        {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "没有操作权限");
         }
         return byGidAndNickname;

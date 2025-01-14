@@ -20,4 +20,56 @@
         cnt,os,create_time,
         update_time,is_deleted
     </sql>
+
+    <!-- 记录操作系统访问监控数据 -->
+    <insert id="shortLinkOsState" parameterType="com.caixy.shortlink.model.entity.LinkOsStats">
+        INSERT INTO
+            t_link_os_stats (full_short_url, date, cnt, os, create_time, update_time, is_deleted)
+        VALUES(
+                  #{linkOsStats.fullShortUrl},
+                  #{linkOsStats.date},
+                  #{linkOsStats.cnt},
+                  #{linkOsStats.os},
+                  NOW(), NOW(), 0
+              )
+        ON DUPLICATE KEY UPDATE
+            cnt = cnt + #{linkOsStats.cnt};
+    </insert>
+
+    <!-- 根据短链接获取指定日期内操作系统监控数据 -->
+    <select id="listOsStatsByShortLink" parameterType="com.caixy.shortlink.model.dto.linkAccessStats.ShortLinkStatsReqDTO" resultType="java.util.HashMap">
+        SELECT
+            tlos.os,
+            SUM(tlos.cnt) AS count
+        FROM
+            t_link tl
+                INNER JOIN t_link_os_stats tlos
+                           ON tl.full_short_url = tlos.full_short_url
+        WHERE
+            tlos.full_short_url = #{param.fullShortUrl}
+          AND tl.gid = #{param.gid}
+          AND tl.is_deleted = 0
+          AND tl.enable_status = #{param.enableStatus}
+          AND tlos.date BETWEEN #{param.startDate} AND #{param.endDate}
+        GROUP BY
+            tlos.full_short_url, tl.gid, tlos.os;
+    </select>
+
+    <!-- 根据分组获取指定日期内操作系统监控数据 -->
+    <select id="listOsStatsByGroup" parameterType="com.caixy.shortlink.model.dto.linkAccessStats.ShortLinkGroupStatsReqDTO" resultType="java.util.HashMap">
+        SELECT
+            tlos.os,
+            SUM(tlos.cnt) AS count
+        FROM
+            t_link tl
+                INNER JOIN t_link_os_stats tlos
+                           ON tl.full_short_url = tlos.full_short_url
+        WHERE
+            tl.gid = #{param.gid}
+          AND tl.is_deleted = 0
+          AND tl.enable_status = '0'
+          AND tlos.date BETWEEN #{param.startDate} AND #{param.endDate}
+        GROUP BY
+            tl.gid, tlos.os;
+    </select>
 </mapper>

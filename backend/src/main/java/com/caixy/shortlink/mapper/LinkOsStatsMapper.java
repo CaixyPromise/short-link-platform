@@ -1,7 +1,13 @@
 package com.caixy.shortlink.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.caixy.shortlink.model.dto.linkAccessStats.ShortLinkGroupStatsReqDTO;
+import com.caixy.shortlink.model.dto.linkAccessStats.ShortLinkStatsReqDTO;
 import com.caixy.shortlink.model.entity.LinkOsStats;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.HashMap;
+import java.util.List;
 
 /**
 * @author CAIXYPROMISE
@@ -11,6 +17,20 @@ import com.caixy.shortlink.model.entity.LinkOsStats;
 */
 public interface LinkOsStatsMapper extends BaseMapper<LinkOsStats> {
 
+    /**
+     * 记录操作系统访问监控数据
+     */
+    void shortLinkOsState(@Param("linkOsStats") LinkOsStats linkOsStatsDO);
+
+    /**
+     * 根据短链接获取指定日期内操作系统监控数据
+     */
+    List<HashMap<String, Object>> listOsStatsByShortLink(@Param("param") ShortLinkStatsReqDTO requestParam);
+
+    /**
+     * 根据分组获取指定日期内操作系统监控数据
+     */
+    List<HashMap<String, Object>> listOsStatsByGroup(@Param("param") ShortLinkGroupStatsReqDTO requestParam);
 }
 
 

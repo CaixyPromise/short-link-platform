@@ -7,7 +7,7 @@ import com.caixy.shortlink.constant.CommonConstant;
 import com.caixy.shortlink.exception.BusinessException;
 import com.caixy.shortlink.model.enums.RedisKeyEnum;
 import com.caixy.shortlink.strategy.CaptchaGenerationStrategy;
-import com.caixy.shortlink.utils.RedisUtils;
+import com.caixy.shortlink.manager.redis.RedisManager;
 import com.caixy.shortlink.utils.ServletUtils;
 import com.caixy.shortlink.utils.SpringContextUtils;
 import jakarta.annotation.PostConstruct;
@@ -37,7 +37,7 @@ public class CaptchaFactory
     private List<CaptchaGenerationStrategy> captchaGenerationStrategies;
 
     @Resource
-    private RedisUtils redisUtils;
+    private RedisManager redisManager;
 
     private ConcurrentHashMap<String, CaptchaGenerationStrategy> serviceCache;
 
@@ -71,7 +71,7 @@ public class CaptchaFactory
                                          return new BusinessException(ErrorCode.OPERATION_ERROR, "验证码校验失败");
                                      });
         // 1.2 校验验证码
-        Map<String, String> result = redisUtils.getHashMap(
+        Map<String, String> result = redisManager.getHashMap(
                 RedisKeyEnum.CAPTCHA_CODE,
                 String.class,
                 String.class,
@@ -84,7 +84,7 @@ public class CaptchaFactory
         String redisUuid = result.get("uuid").trim();
         // 移除session缓存的uuid
         ServletUtils.removeAttributeInSession(CommonConstant.CAPTCHA_SIGN);
-        boolean removeByCache = redisUtils.delete(RedisKeyEnum.CAPTCHA_CODE, sessionId);
+        boolean removeByCache = redisManager.delete(RedisKeyEnum.CAPTCHA_CODE, sessionId);
         if (!removeByCache)
         {
             log.warn("验证码校验失败，移除缓存失败，sessionId:{}", sessionId);

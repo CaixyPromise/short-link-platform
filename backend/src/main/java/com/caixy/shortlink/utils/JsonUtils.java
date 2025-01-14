@@ -1,11 +1,13 @@
 package com.caixy.shortlink.utils;
 
+import com.caixy.shortlink.config.gson.adapter.TimestampDateAdapter;
 import com.caixy.shortlink.constant.CommonConstant;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,7 @@ import java.util.Map;
 public class JsonUtils
 {
     private static final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(Date.class, new TimestampDateAdapter())
             .setDateFormat(CommonConstant.DATE_TIME_PATTERN)
             .setLongSerializationPolicy(LongSerializationPolicy.STRING)
             .serializeNulls().create();
@@ -132,5 +135,15 @@ public class JsonUtils
             System.out.println("Error: " + e.getMessage());
         }
         return gson.toJson(jsonObject);
+    }
+    /**
+     * 获取Gson的JsonObject对象
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @version 2025/1/13 23:15
+     */
+    public static JsonObject getJsonObject(String incorrectJson) {
+        return JsonParser.parseString(incorrectJson).getAsJsonObject();
     }
 }

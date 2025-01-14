@@ -8,7 +8,7 @@ import com.caixy.shortlink.model.entity.User;
 import com.caixy.shortlink.model.enums.UserRoleEnum;
 import com.caixy.shortlink.model.vo.user.LoginUserVO;
 import com.caixy.shortlink.model.vo.user.UserVO;
-import com.caixy.shortlink.utils.RedisUtils;
+import com.caixy.shortlink.manager.redis.RedisManager;
 import com.caixy.shortlink.utils.ServletUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,7 +40,7 @@ public class SessionLoginService implements AuthorizationService
     private static final UserConvertor userConvertor = UserConvertor.INSTANCE;
 
     private final SessionRepository<? extends Session> sessionRepository;
-    private final RedisUtils redisUtils;
+    private final RedisManager redisManager;
 
     @Value("${login.singleLogin:false}")
     private boolean singleLogin;
@@ -52,10 +52,10 @@ public class SessionLoginService implements AuthorizationService
     private static final String SESSION_USER_KEY_PREFIX = "session:user:";
 
     public SessionLoginService(SessionRepository<? extends Session> sessionRepository,
-                               RedisUtils redisUtils)
+                               RedisManager redisManager)
     {
         this.sessionRepository = sessionRepository;
-        this.redisUtils = redisUtils;
+        this.redisManager = redisManager;
     }
 
     @Override
@@ -115,11 +115,11 @@ public class SessionLoginService implements AuthorizationService
         session.setAttribute(USER_LOGIN_STATE, userVO);
 
         // 将sessionId添加到活跃session集合
-        redisUtils.addToSet(SESSION_ACTIVE_SET, sessionId);
+        redisManager.addToSet(SESSION_ACTIVE_SET, sessionId);
 
         // 将sessionId添加到用户的session集合
         String userSessionKey = getUserSessionKey(user.getId());
-        redisUtils.addToSet(userSessionKey, sessionId);
+        redisManager.addToSet(userSessionKey, sessionId);
 
         return getLoginUserVO(userVO);
     }
@@ -137,10 +137,10 @@ public class SessionLoginService implements AuthorizationService
             Long userId = userVO.getId();
             // 从用户的session集合中移除
             String userSessionKey = getUserSessionKey(userId);
-            redisUtils.removeFromSet(userSessionKey, sessionId);
+            redisManager.removeFromSet(userSessionKey, sessionId);
         }
         // 从活跃session集合中移除
-        redisUtils.removeFromSet(SESSION_ACTIVE_SET, sessionId);
+        redisManager.removeFromSet(SESSION_ACTIVE_SET, sessionId);
         // 使Session失效
         session.invalidate();
         return true;
@@ -190,7 +190,7 @@ public class SessionLoginService implements AuthorizationService
     @Override
     public List<UserVO> getAllLoggedInUsers(int currentSize, int size)
     {
-        Set<String> sessionIds = redisUtils.getMembersFromSet(SESSION_ACTIVE_SET);
+        Set<String> sessionIds = redisManager.getMembersFromSet(SESSION_ACTIVE_SET);
         List<UserVO> userList = new ArrayList<>();
         if (sessionIds != null && !sessionIds.isEmpty())
         {
@@ -220,14 +220,14 @@ public class SessionLoginService implements AuthorizationService
                     {
                         // Session 不包含用户信息，可能已过期
                         // 从活跃session集合中移除无效的sessionId
-                        redisUtils.removeFromSet(SESSION_ACTIVE_SET, sessionId);
+                        redisManager.removeFromSet(SESSION_ACTIVE_SET, sessionId);
                     }
                 }
                 else
                 {
                     // Session 为null，可能已过期
                     // 从活跃session集合中移除无效的sessionId
-                    redisUtils.removeFromSet(SESSION_ACTIVE_SET, sessionId);
+                    redisManager.removeFromSet(SESSION_ACTIVE_SET, sessionId);
                 }
             }
         }
@@ -238,7 +238,7 @@ public class SessionLoginService implements AuthorizationService
     @Override
     public int getLoggedInUserCount()
     {
-        Long size = redisUtils.getSetSize(SESSION_ACTIVE_SET);
+        Long size = redisManager.getSetSize(SESSION_ACTIVE_SET);
         return size != null ? size.intValue() : 0;
     }
 
@@ -247,7 +247,7 @@ public class SessionLoginService implements AuthorizationService
     public void forceLogout(Long userId)
     {
         String userSessionKey = getUserSessionKey(userId);
-        Set<String> sessionIds = redisUtils.getMembersFromSet(userSessionKey);
+        Set<String> sessionIds = redisManager.getMembersFromSet(userSessionKey);
         if (sessionIds != null)
         {
             for (String sessionId : sessionIds)
@@ -255,10 +255,10 @@ public class SessionLoginService implements AuthorizationService
                 // 删除Session
                 sessionRepository.deleteById(sessionId);
                 // 从活跃session集合中移除
-                redisUtils.removeFromSet(SESSION_ACTIVE_SET, sessionId);
+                redisManager.removeFromSet(SESSION_ACTIVE_SET, sessionId);
             }
             // 删除用户的session集合
-            redisUtils.delete(userSessionKey);
+            redisManager.delete(userSessionKey);
         }
     }
 

@@ -3,6 +3,7 @@ package com.caixy.shortlink.controller;
 import com.caixy.shortlink.service.LinkService;
 import com.caixy.shortlink.utils.ServletUtils;
 import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -29,7 +29,7 @@ public class LinkRedirectController
     private final LinkService linkService;
 
     @GetMapping("/{shortUri}")
-    public void redirectUrl(@PathVariable String shortUri, ServletRequest request, HttpServletResponse response)
+    public void redirectUrl(@PathVariable String shortUri, ServletRequest request, HttpServletRequest httpServletRequest, HttpServletResponse response)
     {
         String scheme = request.getScheme();
         String serverName = request.getServerName();
@@ -39,9 +39,8 @@ public class LinkRedirectController
                                     .map(String::valueOf)
                                     .map(port -> ":" + port)
                                     .orElse("");
-        String fullShortUrl = String.format("%s://%s%s/%s",scheme, serverName, serverPort, shortUri);
-        log.info("fullShortUrl: {}", fullShortUrl);
-        String redirectResult = linkService.redirectShortLink(fullShortUrl, shortUri);
+        String fullShortUrl = String.format("%s://%s%s/%s", scheme, serverName, serverPort, shortUri);
+        String redirectResult = linkService.redirectShortLink(fullShortUrl, shortUri, httpServletRequest, response);
         ServletUtils.sendRedirect(response, redirectResult);
     }
 }

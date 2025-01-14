@@ -1,8 +1,10 @@
 package com.caixy.shortlink.manager.Email.core;
 
-import com.caixy.shortlink.common.BaseCacheableEnum;
+import com.caixy.shortlink.common.BaseCacheEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Email发送类型枚举
@@ -12,8 +14,7 @@ import lombok.Getter;
  * @since 2024/10/6 下午6:16
  */
 @Getter
-@AllArgsConstructor
-public enum EmailSenderEnum implements BaseCacheableEnum
+public enum EmailSenderEnum implements BaseCacheEnum
 {
     /**
      * 注册账号
@@ -60,11 +61,34 @@ public enum EmailSenderEnum implements BaseCacheableEnum
     ;
     private final String key;
     private final Long expire;
+    private final TimeUnit timeUnit;
     private final Integer code;
     private final String name;
     private final String templateName;
     private final Boolean requireLogin;
     private final Boolean requireToEmail;
+
+    EmailSenderEnum(String key, Long expire, TimeUnit timeUnit, Integer code, String name, String templateName, Boolean requireLogin, Boolean requireToEmail) {
+        this.key = key.endsWith(":") ? key : key + ":";
+        this.expire = expire;
+        this.timeUnit = timeUnit;
+        this.code = code;
+        this.name = name;
+        this.templateName = templateName;
+        this.requireLogin = requireLogin;
+        this.requireToEmail = requireToEmail;
+    }
+
+    EmailSenderEnum(String key, Long expire,  Integer code, String name, String templateName, Boolean requireLogin, Boolean requireToEmail) {
+        this.key = key.endsWith(":") ? key : key + ":";
+        this.expire = expire;
+        this.timeUnit = TimeUnit.SECONDS;
+        this.code = code;
+        this.name = name;
+        this.templateName = templateName;
+        this.requireLogin = requireLogin;
+        this.requireToEmail = requireToEmail;
+    }
 
 
     public static EmailSenderEnum getByCode(Integer code)

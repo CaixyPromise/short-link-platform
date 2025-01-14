@@ -1,15 +1,23 @@
 package com.caixy.shortlink.utils;
 
+import cn.hutool.core.date.DateUnit;
+import cn.hutool.core.date.DateUtil;
 import com.caixy.shortlink.utils.http.HttpUtils;
+import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.lang.reflect.Type;
 import java.net.InetAddress;
+import java.net.URI;
 import java.net.UnknownHostException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * 网络工具类
@@ -155,7 +163,8 @@ public class NetUtils
                 log.error("获取地理位置异常 {}", ip);
                 return "UNKNOWN";
             }
-            Map<String, String> obj = JsonUtils.jsonToObject(rspStr, Map.class);
+            Type type = new TypeToken<Map<String, String>>() {}.getType();
+            Map<String, String> obj = JsonUtils.jsonToObject(rspStr, type);
             String region = obj.get("pro");
             String city = obj.get("city");
             return String.format("%s %s", region, city);
@@ -249,6 +258,40 @@ public class NetUtils
         return bytes;
     }
 
+    /**
+     * 判断是不是局域网ip
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @version 2025/1/13 23:31
+     */
+    public static boolean isInternalIp(String ip) {
+        // 转换为字节数组
+        byte[] addr = textToNumericFormatV4(ip);
+        if (addr == null || addr.length != 4) {
+            return false;
+        }
+
+        final int firstByte = addr[0] & 0xFF; // 转换为无符号值
+        final int secondByte = addr[1] & 0xFF;
+
+        // 判断是否是 10.0.0.0/8
+        if (firstByte == 10) {
+            return true;
+        }
+        // 判断是否是 172.16.0.0/12
+        if (firstByte == 172 && secondByte >= 16 && secondByte <= 31) {
+            return true;
+        }
+        // 判断是否是 192.168.0.0/16
+        if (firstByte == 192 && secondByte == 168) {
+            return true;
+        }
+        // 判断是否是回环地址 127.0.0.1
+        return "127.0.0.1".equals(ip) || "::1".equals(ip);
+    }
+
+
     private static boolean internalIp(byte[] addr)
     {
         if (StringUtils.isNull(addr) || addr.length < 2)
@@ -284,5 +327,115 @@ public class NetUtils
             default:
                 return false;
         }
+    }
+
+    /**
+     * 获取缓存有效期时间
+     *
+     * @param validDate 有效期时间
+     * @return 有限期时间戳
+     */
+    public static long getLinkCacheValidTime(Date validDate) {
+        return Optional.ofNullable(validDate)
+                       .map(each -> DateUtil.between(new Date(), each, DateUnit.MS))
+                       // 一个月
+                       .orElse(2626560000L);
+    }
+
+
+    /**
+     * 获取用户访问操作系统
+     *
+     * @param request 请求
+     * @return 访问操作系统
+     */
+    public static String getOs(HttpServletRequest request) {
+        String userAgent = request.getHeader("User-Agent");
+        if (userAgent.toLowerCase().contains("windows")) {
+            return "Windows";
+        } else if (userAgent.toLowerCase().contains("mac")) {
+            return "Mac OS";
+        } else if (userAgent.toLowerCase().contains("linux")) {
+            return "Linux";
+        } else if (userAgent.toLowerCase().contains("android")) {
+            return "Android";
+        } else if (userAgent.toLowerCase().contains("iphone") || userAgent.toLowerCase().contains("ipad")) {
+            return "iOS";
+        } else {
+            return "Unknown";
+        }
+    }
+
+    /**
+     * 获取用户访问浏览器
+     *
+     * @param request 请求
+     * @return 访问浏览器
+     */
+    public static String getBrowser(HttpServletRequest request) {
+        String userAgent = request.getHeader("User-Agent");
+        if (userAgent.toLowerCase().contains("edg")) {
+            return "Microsoft Edge";
+        } else if (userAgent.toLowerCase().contains("chrome")) {
+            return "Google Chrome";
+        } else if (userAgent.toLowerCase().contains("firefox")) {
+            return "Mozilla Firefox";
+        } else if (userAgent.toLowerCase().contains("safari")) {
+            return "Apple Safari";
+        } else if (userAgent.toLowerCase().contains("opera")) {
+            return "Opera";
+        } else if (userAgent.toLowerCase().contains("msie") || userAgent.toLowerCase().contains("trident")) {
+            return "Internet Explorer";
+        } else {
+            return "Unknown";
+        }
+    }
+
+    /**
+     * 获取用户访问设备
+     *
+     * @param request 请求
+     * @return 访问设备
+     */
+    public static String getDevice(HttpServletRequest request) {
+        String userAgent = request.getHeader("User-Agent");
+        if (userAgent.toLowerCase().contains("mobile")) {
+            return "Mobile";
+        }
+        return "PC";
+    }
+
+    /**
+     * 获取用户访问网络
+     *
+     * @param request 请求
+     * @return 访问设备
+     */
+    public static String getNetwork(HttpServletRequest request) {
+        String actualIp = getIpAddress(request);
+        return actualIp.startsWith("192.168.") || actualIp.startsWith("10.") ? "WIFI" : "Mobile";
+    }
+
+    /**
+     * 获取原始链接中的域名
+     * 如果原始链接包含 www 开头的话需要去掉
+     *
+     * @param url 创建或者修改短链接的原始链接
+     * @return 原始链接中的域名
+     */
+    public static String extractDomain(String url) {
+        String domain = null;
+        try {
+            URI uri = new URI(url);
+            String host = uri.getHost();
+            if (StringUtils.isNotBlank(host)) {
+                domain = host;
+                if (domain.startsWith("www.")) {
+                    domain = host.substring(4);
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return domain;
     }
 }
