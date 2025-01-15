@@ -43,13 +43,13 @@ const BasicLayoutPage: React.FC<BasicLayoutProps> = ({ children }) => {
                                             <BreadcrumbList>
                                                 <BreadcrumbItem className="hidden md:block">
                                                     <BreadcrumbLink href="#">
-                                                        Building Your Application
+                                                        首页
                                                     </BreadcrumbLink>
                                                 </BreadcrumbItem>
-                                                <BreadcrumbSeparator className="hidden md:block" />
-                                                <BreadcrumbItem>
-                                                    <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-                                                </BreadcrumbItem>
+                                                {/*<BreadcrumbSeparator className="hidden md:block" />*/}
+                                                {/*<BreadcrumbItem>*/}
+                                                {/*    <BreadcrumbPage>Data Fetching</BreadcrumbPage>*/}
+                                                {/*</BreadcrumbItem>*/}
                                             </BreadcrumbList>
                                         </Breadcrumb>
                                     </div>

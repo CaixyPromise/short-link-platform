@@ -127,15 +127,15 @@ const data = {
     ],
     navSecondary: [
         {
-            title: "Support",
-            url: "#",
-            icon: LifeBuoy,
-        },
-        {
-            title: "Feedback",
+            title: "反馈",
             url: "/feedback",
             icon: Send,
         },
+        {
+            title: "API开放平台",
+            url: "/settings/api-management",
+            icon: LifeBuoy,
+        }
     ],
     projects: [
         {
