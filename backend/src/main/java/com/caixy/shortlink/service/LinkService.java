@@ -6,6 +6,7 @@ import com.caixy.shortlink.model.dto.link.LinkAddRequest;
 import com.caixy.shortlink.model.dto.link.LinkQueryRequest;
 import com.caixy.shortlink.model.dto.link.LinkUpdateValidDateRequest;
 import com.caixy.shortlink.model.entity.Link;
+import com.caixy.shortlink.model.enums.ShortLinkCreateType;
 import com.caixy.shortlink.model.vo.link.LinkCreateVO;
 import com.caixy.shortlink.model.vo.link.LinkVO;
 
@@ -49,7 +50,7 @@ public interface LinkService extends IService<Link> {
      * @version 2024/11/22 17:55
      */
     @Transactional(rollbackFor = Exception.class)
-    LinkCreateVO addShortLinkFormWeb(LinkAddRequest linkAddRequest);
+    LinkCreateVO addShortLink(LinkAddRequest linkAddRequest, ShortLinkCreateType linkCreateType);
 
     Page<LinkVO> getLinkVOPage(LinkQueryRequest linkQueryRequest, String nickName);
 

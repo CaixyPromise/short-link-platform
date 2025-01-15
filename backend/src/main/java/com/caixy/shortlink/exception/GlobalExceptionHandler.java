@@ -56,7 +56,7 @@ public class GlobalExceptionHandler
         });
         log.info("参数校验异常: {}", errors);
         // 返回自定义的响应体和状态码
-        return ResultUtils.error(ErrorCode.PARAMS_ERROR, "参数错误");
+        return ResultUtils.error(ErrorCode.PARAMS_ERROR);
     }
 
     /**

@@ -5,6 +5,7 @@ package com.caixy.shortlink.constant;
  */
 public interface CommonConstant
 {
+    String SDK_USER_KEY = "SDK_USER";
     /**
      * 软删除符号(未删除)
      */
@@ -12,7 +13,7 @@ public interface CommonConstant
     /**
      * 软删除符号(已删除)
      */
-    Integer DELETE_FLAG = 1;
+    Integer DELETED_FLAG = 1;
 
     /**
      * 启用状态(启用)

@@ -10,6 +10,7 @@ import com.caixy.shortlink.exception.BusinessException;
 import com.caixy.shortlink.exception.ThrowUtils;
 import com.caixy.shortlink.model.dto.link.*;
 import com.caixy.shortlink.model.entity.Link;
+import com.caixy.shortlink.model.enums.ShortLinkCreateType;
 import com.caixy.shortlink.model.enums.UserRoleEnum;
 import com.caixy.shortlink.model.vo.link.LinkCreateVO;
 import com.caixy.shortlink.model.vo.user.UserVO;
@@ -55,8 +56,9 @@ public class LinkController
     public Result<LinkCreateVO> addLink(@Valid @RequestBody LinkAddRequest linkAddRequest, HttpServletRequest request)
     {
         authManager.checkLogin();
-        return ResultUtils.success(linkService.addShortLinkFormWeb(linkAddRequest));
+        return ResultUtils.success(linkService.addShortLink(linkAddRequest, ShortLinkCreateType.CONSOLE));
     }
+
 
     @PostMapping("/update/status/{groupId}/{linkId}/{status}")
     public Result<Boolean> updateLinkStatus(@PathVariable("groupId") String groupId,

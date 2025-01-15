@@ -16,7 +16,7 @@ public enum ShortLinkCreateType
     /**
      * 接口创建
      */
-    INTERFACE(0, "接口创建"),
+    SDK(0, "接口创建"),
     /**
      * 控制台创建
      */

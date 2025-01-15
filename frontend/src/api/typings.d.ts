@@ -15,6 +15,11 @@ declare namespace API {
     userPassword?: string;
   };
 
+  type ApiKeyVO = {
+    accessKey?: string;
+    secretKey?: string;
+  };
+
   type CaptchaVO = {
     codeImage?: string;
     uuid?: string;
@@ -182,16 +187,16 @@ declare namespace API {
   type IPageShortLinkStatsAccessRecordRespDTO = {
     size?: number;
     current?: number;
-    total?: number;
     records?: ShortLinkStatsAccessRecordRespDTO[];
+    total?: number;
     pages?: number;
   };
 
   type IPageUserFeedbackInfoVO = {
     size?: number;
     current?: number;
-    total?: number;
     records?: UserFeedbackInfoVO[];
+    total?: number;
     pages?: number;
   };
 
@@ -1050,6 +1055,10 @@ declare namespace API {
     contactName: string;
   };
 
+  type QueryApiKeyRequest = {
+    publicKey: string;
+  };
+
   type redirectUrlParams = {
     shortUri: string;
   };
@@ -1063,6 +1072,12 @@ declare namespace API {
   type ResultAddUserVO = {
     code?: number;
     data?: AddUserVO;
+    message?: string;
+  };
+
+  type ResultApiKeyVO = {
+    code?: number;
+    data?: ApiKeyVO;
     message?: string;
   };
 

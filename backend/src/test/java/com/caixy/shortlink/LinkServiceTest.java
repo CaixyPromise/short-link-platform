@@ -1,6 +1,7 @@
 package com.caixy.shortlink;
 
 import com.caixy.shortlink.model.dto.link.LinkAddRequest;
+import com.caixy.shortlink.model.enums.ShortLinkCreateType;
 import com.caixy.shortlink.model.vo.link.LinkCreateVO;
 import com.caixy.shortlink.service.LinkService;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,7 @@ public class LinkServiceTest
         linkAddRequest.setValidDateType(0);
         linkAddRequest.setDescribe("测试链接");
 
-        LinkCreateVO linkCreateVO = linkService.addShortLinkFormWeb(linkAddRequest);
+        LinkCreateVO linkCreateVO = linkService.addShortLink(linkAddRequest, ShortLinkCreateType.CONSOLE);
         System.out.println(linkCreateVO);
         assert linkCreateVO != null;
     }

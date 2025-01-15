@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.caixy.shortlink.mapper.ApiKeyMapper">
+
+    <resultMap id="BaseResultMap" type="com.caixy.shortlink.model.entity.ApiKey">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="accessKey" column="access_key" jdbcType="CHAR"/>
+            <result property="secretKey" column="secret_key" jdbcType="CHAR" typeHandler="com.caixy.shortlink.handler.AesEncryptTypeHandler"/>
+            <result property="userId" column="user_id" jdbcType="BIGINT"/>
+            <result property="lastRequestTime" column="last_request_time" jdbcType="TIMESTAMP"/>
+            <result property="lastRefreshTime" column="last_refresh_time" jdbcType="TIMESTAMP"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+            <result property="isDeleted" column="is_deleted" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,access_key,secret_key,
+        user_id,last_request_time,last_refresh_time,
+        create_time,update_time,is_deleted
+    </sql>
+    <resultMap id="SecretKeyAndAccessKey" type="com.caixy.shortlink.model.entity.ApiKey" >
+        <result property="accessKey" column="access_key" jdbcType="CHAR"/>
+        <result property="secretKey" column="secret_key" jdbcType="CHAR" typeHandler="com.caixy.shortlink.handler.AesEncryptTypeHandler"/>
+        <result property="isDeleted" column="is_deleted" jdbcType="TINYINT"/>
+    </resultMap>
+    
+    <select id="selectUserVOByAccessKey" resultType="com.caixy.shortlink.model.vo.user.UserVO">
+        SELECT
+            u.id,
+            u.user_account,
+            u.nick_name,
+            u.user_phone,
+            u.user_email,
+            u.user_gender,
+            u.user_avatar,
+            u.user_profile,
+            u.create_time,
+            u.update_time,
+            u.is_deleted
+        FROM t_user u
+        WHERE u.id = (
+            SELECT a.user_id
+            FROM t_api_key a
+            WHERE a.access_key = #{accessKey}
+              AND a.is_deleted = 0
+        )
+          AND u.is_deleted = 0;
+    </select>
+
+    <select id="selectSecretKeyByAccessKey" resultMap="SecretKeyAndAccessKey" >
+        SELECT
+            access_key, secret_key, is_deleted
+        FROM
+            t_api_key
+        WHERE
+            access_key = #{accessKey}
+            AND
+            is_deleted = 0;
+    </select>
+</mapper>

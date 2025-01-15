@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 public enum RedisKeyEnum implements BaseCacheEnum
 {
 
-    CATEGORY_PARENT_BY_KEY("category:parent:", -1L),
+    SDK_NONCE_KEY("sdk:nonce", 5L, TimeUnit.MINUTES),
 
     /**
      * 验证码缓存，5分钟

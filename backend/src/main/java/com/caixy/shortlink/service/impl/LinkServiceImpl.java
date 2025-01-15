@@ -205,7 +205,7 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public LinkCreateVO addShortLinkFormWeb(LinkAddRequest linkAddRequest)
+    public LinkCreateVO addShortLink(LinkAddRequest linkAddRequest, ShortLinkCreateType linkCreateChannel)
     {
         String shortLinkSuffix = generateShortLinkSuffix(linkAddRequest);
         String finalShortLink = StrBuilder.create()
@@ -225,7 +225,7 @@ public class LinkServiceImpl extends ServiceImpl<LinkMapper, Link> implements Li
                         .validDateType(linkAddRequest.getValidDateType())
                         .validDateStart(linkAddRequest.getValidDateStart())
                         .validDateEnd(linkAddRequest.getValidDateEnd())
-                        .createdType(ShortLinkCreateType.CONSOLE.getCode())
+                        .createdType(linkCreateChannel.getCode())
                         .enableStatus(CommonConstant.ENABLE_STATUS)
                         .clickNum(0)
                         .totalPv(0)

@@ -25,6 +25,7 @@ import com.caixy.shortlink.model.entity.User;
 import com.caixy.shortlink.model.enums.FileActionBizEnum;
 import com.caixy.shortlink.model.enums.UserGenderEnum;
 import com.caixy.shortlink.model.vo.user.UserVO;
+import com.caixy.shortlink.service.ApiKeyService;
 import com.caixy.shortlink.service.UserService;
 import com.caixy.shortlink.strategy.FileActionStrategy;
 import com.caixy.shortlink.strategy.UploadFileMethodStrategy;
@@ -40,6 +41,8 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
@@ -58,9 +61,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
     private final RedisManager redisManager;
     private final RedissonClient redissonClient;
     private RBloomFilter<String> nickNameBloomFilter;
+    private final ApiKeyService apiKeyService;
     private final String DEFAULT_NICK_NAME_PREFIX = "用户_";
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public long userRegister( UserRegisterRequest userRegisterRequest)
     {
         String userPassword = userRegisterRequest.getUserPassword();
@@ -71,7 +76,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
         // 2. 插入数据
         user.setUserPassword(userPassword);
         user.setUserRole(UserConstant.DEFAULT_ROLE);
-        return doRegister(user);
+        Long userId = doRegister(user);
+        Boolean initApiKeyByUser = apiKeyService.initApiKeyByUser(userId);
+        if (!initApiKeyByUser) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "注册失败: 初始化API密钥失败");
+        }
+        return userId;
     }
 
     @Override

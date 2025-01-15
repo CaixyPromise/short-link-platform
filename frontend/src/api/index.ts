@@ -17,6 +17,7 @@ import * as fileController from './fileController';
 import * as feedbackController from './feedbackController';
 import * as emailController from './emailController';
 import * as authController from './authController';
+import * as apiInfoController from './apiInfoController';
 import * as adminController from './adminController';
 import * as linkRedirectController from './linkRedirectController';
 import * as notFoundController from './notFoundController';
@@ -38,6 +39,7 @@ export default {
   feedbackController,
   emailController,
   authController,
+  apiInfoController,
   adminController,
   linkRedirectController,
   notFoundController,

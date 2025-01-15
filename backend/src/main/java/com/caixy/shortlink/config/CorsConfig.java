@@ -1,13 +1,20 @@
 package com.caixy.shortlink.config;
 
+import com.caixy.shortlink.aop.SDKRequestInterceptor;
+import com.caixy.shortlink.aop.resolver.SdkUserArgumentResolver;
 import com.caixy.shortlink.model.enums.FileActionBizEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.List;
 
 
 /**
@@ -19,6 +26,21 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class CorsConfig implements WebMvcConfigurer
 {
     private final LocalFileConfig localFileConfig;
+
+    private final SDKRequestInterceptor sdkAuthInterceptor;
+
+    private final SdkUserArgumentResolver sdkUserArgumentResolver;
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        // 拦截 /sdk/** 下的所有请求
+        registry.addInterceptor(sdkAuthInterceptor).addPathPatterns("/sdk/**");
+    }
+
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(sdkUserArgumentResolver);
+    }
 
     @Override
     public void addCorsMappings(CorsRegistry registry)
