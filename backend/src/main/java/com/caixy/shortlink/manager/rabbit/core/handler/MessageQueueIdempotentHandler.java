@@ -67,8 +67,6 @@ public class MessageQueueIdempotentHandler
      */
     public void delMessageProcessed(String messageId)
     {
-        redisManager.delete(RedisKeyEnum.IDEMPOTENCY_PROCESSING_KEY, messageId);
-
         redisManager.delete(RedisKeyEnum.IDEMPOTENCY_ACCOMPLISH_KEY, messageId);
     }
 }
