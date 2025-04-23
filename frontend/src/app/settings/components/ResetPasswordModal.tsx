@@ -21,6 +21,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {useUserInfo} from "@/hooks/useUserInfo";
+import PasswordInput from "@/components/PasswordInput";
 
 const schema = z.object({
     newPassword: z
@@ -144,7 +145,7 @@ const ModifyEmailModal: React.FC<ModifyEmailModalProps> = ({ visible, setVisible
                                 <FormItem>
                                     <FormLabel>新密码</FormLabel>
                                     <FormControl>
-                                        <Input.Password {...field} />
+                                        <PasswordInput {...field} />
                                     </FormControl>
                                     <FormDescription>
                                         <span className="text-xs text-gray-500">密码长度在8-32位之间</span>
@@ -160,7 +161,7 @@ const ModifyEmailModal: React.FC<ModifyEmailModalProps> = ({ visible, setVisible
                                 <FormItem>
                                     <FormLabel>确认密码</FormLabel>
                                     <FormControl>
-                                        <Input.Password {...field} />
+                                        <PasswordInput {...field} />
                                     </FormControl>
                                     <FormDescription>
                                         <span className="text-xs text-gray-500">再次输入新密码</span>
