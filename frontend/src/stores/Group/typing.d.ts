@@ -15,4 +15,6 @@ export interface GroupStoreProps {
      * 组列表
      */
     groupList: API.GroupItemVO[];
+
+    addGroupModalVisible: boolean;
 }

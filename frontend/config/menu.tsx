@@ -2,7 +2,9 @@ import {MenuItemProps} from "@/app/typing";
 import {UserRoleEnum} from "@/enums/access";
 
 export const NavItem: MenuItemProps[] = [
-    {name: "登录/注册页", path:"/login", layout: false, hiddenInMenu: true},
+    {name: "登录/注册页", path:"/auth", layout: false, hiddenInMenu: true},
+    {name: "测试页", path:"/auth", layout: false, hiddenInMenu: true},
+
     {name: "Welcome", path: "/", icon: "dashboard"},
     // {name: "dashboard", path: "/dashboard", icon: "dashboard"},
     {name: "管理后台", path: "/admin", icon: "user", access: UserRoleEnum.ADMIN,

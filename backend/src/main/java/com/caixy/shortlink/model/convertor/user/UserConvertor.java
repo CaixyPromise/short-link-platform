@@ -3,6 +3,7 @@ package com.caixy.shortlink.model.convertor.user;
 
 import com.caixy.shortlink.constant.RegexPatternConstants;
 import com.caixy.shortlink.model.convertor.BaseConvertor;
+import com.caixy.shortlink.model.dto.user.UserRegisterRequest;
 import com.caixy.shortlink.model.entity.User;
 import com.caixy.shortlink.model.enums.UserRoleEnum;
 import com.caixy.shortlink.model.vo.user.LoginUserVO;
@@ -29,6 +30,9 @@ public interface UserConvertor extends BaseConvertor<User>
 
     @Mapping(source = "userEmail", target = "userEmail", qualifiedByName = "encryptEmailText")
     LoginUserVO voToLoginVO(UserVO userVO);
+
+    User registerToEntity(UserRegisterRequest userRegisterRequest);
+
     /**
      * 忽略id字段进行转换
      */

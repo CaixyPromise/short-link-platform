@@ -88,8 +88,8 @@ public interface RegexPatternConstants
     Pattern EXTRA_JSON_PATTERN = Pattern.compile("\\{.*\\}", Pattern.DOTALL);
 
     /**
-     * 匹配姓名，只能包含中文字符和英文大小写字母
+     * 匹配用户名，只能包含中文字符和英文大小写字母，最多15个字符
      */
-    String NAME_REGEX = "^(?:[\\u4e00-\\u9fa5a-zA-Z]{1,30})$";
+    String NAME_REGEX = "^(?:[\\u4e00-\\u9fa5a-zA-Z]{4,15})$";
 
 }

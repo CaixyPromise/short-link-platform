@@ -15,7 +15,6 @@ import {Icon} from "@/components/ui/icons";
 import {LoginUser} from "@/app/typing";
 import {UserRoleEnum} from "@/enums/access";
 import {queryServer} from "@/components/AvatarDropdown/server";
-import {FormStateEnum} from "@/app/login/enums";
 
 const AvatarDropdown: React.FC<{
     userInfo: LoginUser
@@ -29,10 +28,10 @@ const AvatarDropdown: React.FC<{
             </DropdownMenuLabel>
             <DropdownMenuSeparator/>
             <DropdownMenuItem onClick={() =>{
-                window.location.href = `/login?action=${FormStateEnum.REGISTER.getCode()}`;
+                window.location.href = `/auth?action=${FormStateEnum.REGISTER.getCode()}`;
             }}><SmilePlus className="h-4 w-4 items-center mr-2" />去注册</DropdownMenuItem>
             <DropdownMenuItem onClick={() =>{
-                window.location.href = `/login?action=${FormStateEnum.LOGIN.getCode()}`;
+                window.location.href = `/auth?action=${FormStateEnum.LOGIN.getCode()}`;
             }}><LogIn className="h-4 w-4 items-center mr-2" />去登录</DropdownMenuItem>
         </>
     }
@@ -52,7 +51,7 @@ const AvatarDropdown: React.FC<{
             <DropdownMenuItem onClick={async () => {
                 const {code} = await queryServer.logOut();
                 if (code === 0) {
-                    window.location.href = "/login";
+                    window.location.href = "/auth";
                 }
             }}><LogOut className="h-4 w-4 items-center mr-2" />退出登录</DropdownMenuItem>
         </>

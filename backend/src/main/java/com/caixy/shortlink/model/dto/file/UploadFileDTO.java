@@ -2,13 +2,16 @@ package com.caixy.shortlink.model.dto.file;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.crypto.digest.DigestUtil;
-import com.caixy.shortlink.strategy.UploadFileMethodStrategy;
+import com.caixy.shortlink.manager.file.FileInfoHelper;
+import com.caixy.shortlink.model.entity.FileInfo;
 import com.caixy.shortlink.model.enums.FileActionBizEnum;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.tika.Tika;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.UUID;
 
@@ -22,7 +25,17 @@ import java.util.UUID;
 @Data
 public class UploadFileDTO
 {
-    private UploadFileMethodStrategy uploadManager;
+    /**
+    * 是否秒传/已经保存入库
+    */
+    private Boolean isSaved;
+
+    /**
+    * 文件信息表信息
+    */
+    private FileInfo fileInfo;
+
+    private FileInfoHelper fileInfoHelper;
 
     /**
      * 上传人Id
@@ -42,7 +55,7 @@ public class UploadFileDTO
     /**
      * 文件描述信息
      */
-    private FileInfo fileInfo;
+    private FileSaveInfo fileSaveInfo;
 
     /**
      * 文件MD5值
@@ -56,7 +69,7 @@ public class UploadFileDTO
 
     @Data
     @Builder
-    public static class FileInfo
+    public static class FileSaveInfo
     {
         /**
          * 文件唯一标识
@@ -92,6 +105,8 @@ public class UploadFileDTO
          * 文件可访问路径
          */
         private String fileURL;
+
+        private String contentType;
     }
 
     /**
@@ -99,7 +114,7 @@ public class UploadFileDTO
      *
      * @return 构建的 FileInfo 对象
      */
-    public FileInfo convertFileInfo()
+    public FileSaveInfo convertFileInfo() throws IOException
     {
         String uuid = UUID.randomUUID().toString();
         String originalFilename = multipartFile.getOriginalFilename();
@@ -111,14 +126,16 @@ public class UploadFileDTO
         // 使用 FileActionBizEnum 枚举类中的方法生成路径和URL
         Path fileAbsoluteName = fileActionBizEnum.buildFileAbsolutePathAndName(userId, filename);
         Path filePath = fileActionBizEnum.buildFilePath(userId);
-
-        return FileInfo.builder()
+        Tika tika = new Tika();
+        String mimeType = tika.detect(multipartFile.getInputStream());
+        return FileSaveInfo.builder()
                 .uuid(uuid)
                 .fileRealName(originalFilename)
                 .fileInnerName(filename)
                 .fileAbsolutePathAndName(fileAbsoluteName)
                 .filePath(filePath)
                 .fileSuffix(fileSuffix)
+                .contentType(mimeType)
                 .build();
     }
 }

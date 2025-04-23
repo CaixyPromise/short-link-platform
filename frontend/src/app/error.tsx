@@ -20,7 +20,7 @@ export default function Error({error, reset,}: {
                     <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
                         <AlertTriangle className="w-6 h-6 text-destructive" />
                     </div>
-                    <CardTitle className="text-2xl font-bold text-center">Oops! Something went wrong</CardTitle>
+                    <CardTitle className="text-2xl font-bold text-white text-center">Oops! Something went wrong</CardTitle>
                     <CardDescription className="text-center">
                         We apologize for the inconvenience. An unexpected error has occurred.
                     </CardDescription>

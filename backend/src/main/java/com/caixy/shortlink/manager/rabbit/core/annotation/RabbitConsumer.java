@@ -1,6 +1,9 @@
 package com.caixy.shortlink.manager.rabbit.core.annotation;
 
+import com.caixy.shortlink.manager.rabbit.core.consumer.RabbitConsumerRegistrar;
 import com.caixy.shortlink.manager.rabbit.core.enums.RabbitMQQueueEnum;
+import org.springframework.context.annotation.Import;
+import org.springframework.stereotype.Component;
 
 import java.lang.annotation.*;
 
@@ -10,10 +13,17 @@ import java.lang.annotation.*;
  * @Author CAIXYPROMISE
  * @since 2025/1/13 1:35
  */
-@Target({ElementType.TYPE})
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface RabbitConsumer
-{
-    RabbitMQQueueEnum value();
+@Component
+@Import(RabbitConsumerRegistrar.class)     // 把 Registrar 注入 Spring
+public @interface RabbitConsumer {
+
+    RabbitMQQueueEnum value();             // 必填：枚举
+
+    /** 可选：并发数、是否自动启动 */
+    String  concurrency() default "1";
+    boolean autoStartup() default true;
 }
+

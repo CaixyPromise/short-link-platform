@@ -30,115 +30,80 @@ public class RabbitMQManager
 {
 
     private final RabbitTemplate rabbitTemplate;
-    private final RedisManager redisManager;
 
 
-    /**
-     * 发送延迟消息
-     *
-     * @param queueEnum 队列枚举信息
-     * @param message   要发送的消息内容
-     */
-    public void sendDelayedMessage(RabbitMQQueueEnum queueEnum, Object message)
-    {
-        if (queueEnum.getDelayTime() == null)
-        {
-            log.warn("消息发送失败: 延迟时间不能为空");
+    /*──────────────────────── 发送延迟消息 ────────────────────────*/
+    public void sendDelayedMessage(RabbitMQQueueEnum queueEnum, Object payload) {
+
+        switch (queueEnum.getDelayMode()) {
+
+            /* ——— ① 插件式延迟 ——— */
+            case PLUGIN -> {
+                if (queueEnum.getTtlMillis() == null) {
+                    log.warn("发送失败: PLUGIN 模式必须在枚举中指定 ttlMillis(x-delay)");
+                    return;
+                }
+                Map<String,Object> hdr = Map.of("x-delay", queueEnum.getTtlMillis());
+                convertAndSend(queueEnum, payload, hdr, null);
+            }
+
+            /* ——— ② TTL+DLX 延迟 ——— */
+            case TTL -> {
+                // 队列本身已配置 x-message-ttl，无需额外 header
+                convertAndSend(queueEnum, payload, Map.of(), null);
+            }
+
+            /* ——— ③ 非延迟队列 ——— */
+            case NONE -> {
+                log.warn("队列 [{}] 为 NONE 模式，已退回普通发送。", queueEnum.getQueueName());
+                sendMessage(queueEnum, payload);
+            }
         }
-
-        // 构建消息属性映射
-        Map<String, Object> messageProperties = new HashMap<>();
-        messageProperties.put("x-delay", queueEnum.getDelayTime());
-
-        // 构建消息
-        MessagePostProcessor messagePostProcessor = buildMessagePostProcessor(messageProperties);
-        CorrelationData correlationData = buildCorrelationData();
-
-        // 发送消息
-        rabbitTemplate.convertAndSend(
-                queueEnum.getExchange(),
-                queueEnum.getRoutingKey(),
-                message,
-                messagePostProcessor,
-                correlationData
-        );
-        log.info("发送延迟消息，消息ID为：{}", correlationData.getId());
     }
 
-    /**
-     * 发送延迟消息，并保持重试计数
-     *
-     * @param message    消息内容
-     * @param retryCount 当前重试次数
-     */
-    public void sendDelayedMessageWithRetry(RabbitMQQueueEnum queueEnum, Object message, int retryCount)
-    {
-        // 构建消息属性映射
-        Map<String, Object> messageProperties = new HashMap<>();
-        messageProperties.put("x-delay", queueEnum.getDelayTime());
-        messageProperties.put("x-retry-count", retryCount);
+    /* 发送延迟消息 + 重试计数 */
+    public void sendDelayedMessageWithRetry(RabbitMQQueueEnum queueEnum,
+                                            Object payload,
+                                            int retryCount) {
 
-        // 构建消息处理器，将这些属性应用到消息上
-        MessagePostProcessor messagePostProcessor = buildMessagePostProcessor(messageProperties);
+        Map<String,Object> hdr = new HashMap<>();
+        hdr.put("x-retry-count", retryCount);
 
-        // 生成消息唯一标识
-        CorrelationData correlationData = buildCorrelationData();
+        if (queueEnum.isPluginDelay()) {
+            hdr.put("x-delay", queueEnum.getTtlMillis());
+        } // TTL 模式不需要 x-delay
 
-        // 发送消息
-        rabbitTemplate.convertAndSend(
-                queueEnum.getExchange(),
-                queueEnum.getRoutingKey(),
-                message,
-                messagePostProcessor,
-                correlationData
-        );
-        log.info("发送延迟消息，消息ID为：{}，重试次数为：{}", correlationData.getId(), retryCount);
+        convertAndSend(queueEnum, payload, hdr, null);
+        log.info("发送延迟消息，队列：{}，retryCount={}，payload={}",
+                queueEnum.getQueueName(), retryCount, payload);
     }
 
+    /*──────────────────────── 发送普通消息 ────────────────────────*/
+    public void sendMessage(RabbitMQQueueEnum queueEnum, Object payload) {
+        convertAndSend(queueEnum, payload, Map.of(), null);
+    }
 
+    /*──────────────────── 共用的实际发送方法 ──────────────────────*/
+    private void convertAndSend(RabbitMQQueueEnum qEnum,
+                                Object payload,
+                                Map<String,Object> headers,
+                                MessagePostProcessor extraProcessor) {
 
-    /**
-     * 发送非延迟消息
-     *
-     * @param queueEnum 队列枚举信息
-     * @param message   要发送的消息内容
-     */
-    public void sendMessage(RabbitMQQueueEnum queueEnum, Object message)
-    {
-        CorrelationData correlationData = buildCorrelationData();
+        CorrelationData cd = new CorrelationData(UUID.randomUUID().toString());
 
         rabbitTemplate.convertAndSend(
-                queueEnum.getExchange(),
-                queueEnum.getRoutingKey(),
-                message,
-                m -> {
-                    m.getMessageProperties().setContentType(MessageProperties.CONTENT_TYPE_JSON);
-                    return m;
+                qEnum.getExchange(),
+                qEnum.getRoutingKey(),
+                payload,
+                msg -> {
+                    // 统一设置 JSON & 自定义头
+                    msg.getMessageProperties().setContentType(MessageProperties.CONTENT_TYPE_JSON);
+                    headers.forEach((k,v) -> msg.getMessageProperties().setHeader(k, v));
+                    return extraProcessor == null ? msg : extraProcessor.postProcessMessage(msg);
                 },
-                correlationData
+                cd
         );
-        log.info("发送消息，消息ID为：{}", correlationData.getId());
-    }
-
-    private CorrelationData buildCorrelationData()
-    {
-        String messageId = UUID.randomUUID().toString();
-        return new CorrelationData(messageId);
-    }
-
-    /**
-     * 构建延迟消息的 MessagePostProcessor
-     *
-     * @param properties 要设置的消息属性映射
-     * @return MessagePostProcessor
-     */
-    private MessagePostProcessor buildMessagePostProcessor(Map<String, Object> properties)
-    {
-        return msg ->
-        {
-            properties.forEach((key, value) -> msg.getMessageProperties().setHeader(key, value));
-            msg.getMessageProperties().setContentType(MessageProperties.CONTENT_TYPE_JSON);
-            return msg;
-        };
+        log.debug("Rabbit 发送成功：ID={}, exchange={}, rk={}, queue={}",
+                cd.getId(), qEnum.getExchange(), qEnum.getRoutingKey(), qEnum.getQueueName());
     }
 }

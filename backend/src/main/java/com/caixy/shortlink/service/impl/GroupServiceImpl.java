@@ -10,7 +10,7 @@ import com.caixy.shortlink.common.ErrorCode;
 import com.caixy.shortlink.constant.CommonConstant;
 import com.caixy.shortlink.exception.BusinessException;
 import com.caixy.shortlink.exception.ThrowUtils;
-import com.caixy.shortlink.manager.Authorization.AuthManager;
+import com.caixy.shortlink.manager.authorization.AuthManager;
 import com.caixy.shortlink.mapper.GroupMapper;
 import com.caixy.shortlink.mapper.LinkMapper;
 import com.caixy.shortlink.model.convertor.group.GroupConvertor;

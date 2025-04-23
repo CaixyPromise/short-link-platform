@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 @Getter
 public enum RedisKeyEnum implements BaseCacheEnum
 {
+    UPLOAD_EXIST_TOKEN("upload_exist:", 10L, TimeUnit.MINUTES),
 
     SDK_NONCE_KEY("sdk:nonce", 5L, TimeUnit.MINUTES),
 
@@ -16,6 +17,10 @@ public enum RedisKeyEnum implements BaseCacheEnum
      * 验证码缓存，5分钟
      */
     CAPTCHA_CODE("captcha:", 60L * 5),
+    /**
+    * 临时注册token
+    */
+    ACTIVE_USER("active_user:", 60L * 5),
 
     /**
      * github OAuth验证信息缓存，5分钟

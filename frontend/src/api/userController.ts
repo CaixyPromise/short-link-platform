@@ -114,21 +114,6 @@ export async function modifyPassword(
   });
 }
 
-/** 此处后端没有提供注释 POST /user/register */
-export async function userRegister(
-  body: API.UserRegisterRequest,
-  options?: { [key: string]: any },
-) {
-  return request<API.ResultBoolean>('/user/register', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  });
-}
-
 /** 此处后端没有提供注释 POST /user/reset/email */
 export async function resetEmail(
   body: API.UserResetEmailRequest,

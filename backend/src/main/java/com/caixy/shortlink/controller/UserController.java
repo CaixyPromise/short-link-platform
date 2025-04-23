@@ -10,7 +10,7 @@ import com.caixy.shortlink.constant.RegexPatternConstants;
 import com.caixy.shortlink.constant.UserConstant;
 import com.caixy.shortlink.exception.BusinessException;
 import com.caixy.shortlink.exception.ThrowUtils;
-import com.caixy.shortlink.manager.Authorization.AuthManager;
+import com.caixy.shortlink.manager.authorization.AuthManager;
 import com.caixy.shortlink.model.dto.user.*;
 import com.caixy.shortlink.model.entity.User;
 import com.caixy.shortlink.model.enums.UserRoleEnum;
@@ -46,39 +46,6 @@ public class UserController
     @Resource
     private AuthManager authManager;
 
-    // region 注册相关
-    /**
-     * 用户注册
-     *
-     * @param userRegisterRequest
-     * @return
-     */
-    @PostMapping("/register")
-    public Result<Boolean> userRegister(@RequestBody UserRegisterRequest userRegisterRequest)
-    {
-        if (userRegisterRequest == null)
-        {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        String userAccount = userRegisterRequest.getUserAccount();
-        String userPassword = userRegisterRequest.getUserPassword();
-        String checkPassword = userRegisterRequest.getCheckPassword();
-        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword))
-        {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数不能为空");
-        }
-        // 密码和校验密码相同
-        if (!userPassword.equals(checkPassword))
-        {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的密码不一致");
-        }
-        // 执行注册操作
-        long saveResult = userService.userRegister(userRegisterRequest);
-        return ResultUtils.success(saveResult > 0);
-    }
-    // endregion
-
-
     // region 管理员增删改查
 
     /**
@@ -100,7 +67,7 @@ public class UserController
         User user = new User();
         BeanUtils.copyProperties(userAddRequest, user);
         // 参数校验
-        String userAccount = user.getUserAccount();
+        String userAccount = user.getUserName();
         // 1. 校验
         if (StringUtils.isAnyBlank(userAccount))
         {
@@ -119,7 +86,7 @@ public class UserController
         // 返回结果
         AddUserVO resultAddUserInfo = AddUserVO.builder()
                                                .userName(newUser.getNickName())
-                                               .userAccount(newUser.getUserAccount())
+                                               .userAccount(newUser.getUserName())
                                                .userPassword(defaultPassword)
                                                .id(resultId)
                                                .build();

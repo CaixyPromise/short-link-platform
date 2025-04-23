@@ -18,7 +18,7 @@ import com.caixy.shortlink.model.enums.UserRoleEnum;
 import com.caixy.shortlink.model.vo.user.UserVO;
 import com.caixy.shortlink.model.vo.linkAccessStats.LinkAccessStatsVO;
 import com.caixy.shortlink.service.LinkAccessStatsService;
-import com.caixy.shortlink.manager.Authorization.AuthManager;
+import com.caixy.shortlink.manager.authorization.AuthManager;
 
 import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;

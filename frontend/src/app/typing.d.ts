@@ -83,3 +83,7 @@ export type InitialState = {
 
 export type ButtonVariant = "default" | "destructive" | "outline" |
     "secondary" | "ghost" | "link" | null | undefined
+
+export interface SystemRuntimeConfig {
+    title: string
+}

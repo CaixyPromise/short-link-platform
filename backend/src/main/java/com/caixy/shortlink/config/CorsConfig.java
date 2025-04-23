@@ -6,7 +6,6 @@ import com.caixy.shortlink.model.enums.FileActionBizEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -63,7 +62,7 @@ public class CorsConfig implements WebMvcConfigurer
         {
             String pathPattern = localFileConfig.getStaticPath() + "/" + bizEnum.getRoutePath() + "/**";
             String location =
-                    "file:///" + localFileConfig.getRootLocation().toString().replace("\\", "/") + "/" + bizEnum.getValue() + "/";
+                    "file:///" + localFileConfig.getRootLocation().toString().replace("\\", "/") + "/" + bizEnum.getLabel() + "/";
             log.info("AddResourceHandlers: {} -> \"{}\"", pathPattern, location);
             registry.addResourceHandler(pathPattern).addResourceLocations(location);
         }

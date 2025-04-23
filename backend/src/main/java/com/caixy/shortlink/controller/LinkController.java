@@ -16,7 +16,7 @@ import com.caixy.shortlink.model.vo.link.LinkCreateVO;
 import com.caixy.shortlink.model.vo.user.UserVO;
 import com.caixy.shortlink.model.vo.link.LinkVO;
 import com.caixy.shortlink.service.LinkService;
-import com.caixy.shortlink.manager.Authorization.AuthManager;
+import com.caixy.shortlink.manager.authorization.AuthManager;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;

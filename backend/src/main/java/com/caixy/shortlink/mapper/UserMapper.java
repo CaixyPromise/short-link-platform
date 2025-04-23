@@ -12,6 +12,8 @@ public interface UserMapper extends BaseMapper<User>
     int userDeletion(@Param("userId") Long userId);
 
     User findByNickname(@Param("nickName") String nickName);
+
+    User findByEmail(@Param("email") String email);
 }
 
 

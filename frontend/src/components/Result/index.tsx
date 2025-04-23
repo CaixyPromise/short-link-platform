@@ -31,7 +31,7 @@ const Result: React.FC<ResultPageProps> = ({
 							</Condition.Case>
 						</Condition.Switch>
 					</Conditional>
-					<h1 className="text-2xl font-bold mb-3">{title}</h1>
+					<h1 className="text-2xl font-bold text-white mb-3">{title}</h1>
 					<p>{subText}</p>
 				</div>
 				<Conditional value={extraContent}>

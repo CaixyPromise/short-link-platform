@@ -6,7 +6,7 @@
 
     <resultMap id="BaseResultMap" type="com.caixy.shortlink.model.entity.User">
             <id property="id" column="id" jdbcType="BIGINT"/>
-            <result property="userAccount" column="user_account" jdbcType="VARCHAR"/>
+            <result property="userName" column="user_name" jdbcType="VARCHAR"/>
             <result property="nickName" column="nick_name" jdbcType="VARCHAR"/>
             <result property="userPassword" column="user_password" jdbcType="VARCHAR"/>
             <result property="userPhone" column="user_phone" jdbcType="VARCHAR"/>
@@ -22,7 +22,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,user_account,nick_name,
+        id,user_name,nick_name,
         user_password,user_phone,user_email,
         user_gender,user_avatar,user_profile,
         user_role,create_time,update_time,
@@ -37,9 +37,19 @@
     </update>
 
     <select id="findByNickname" resultMap="BaseResultMap">
-        select * from short_link.t_user
-        <if test="nickName != null">
-            where nick_name = #{nickName}
-        </if>
+        select
+            <include refid="Base_Column_List" />
+        from short_link.t_user
+            <if test="nickName != null">
+                where nick_name = #{nickName}
+            </if>
+    </select>
+    <select id="findByEmail" resultMap="BaseResultMap">
+        select
+            <include refid="Base_Column_List" />
+        from short_link.t_user
+            <if test="email != null">
+                where user_email = #{email}
+            </if>
     </select>
 </mapper>

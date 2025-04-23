@@ -13,7 +13,7 @@ import com.caixy.shortlink.common.ErrorCode;
 import com.caixy.shortlink.constant.CommonConstant;
 import com.caixy.shortlink.exception.BusinessException;
 import com.caixy.shortlink.exception.ThrowUtils;
-import com.caixy.shortlink.manager.RDLock.DistributedLockManager;
+import com.caixy.shortlink.manager.lock.DistributedLockManager;
 import com.caixy.shortlink.manager.redis.RedisManager;
 import com.caixy.shortlink.mapper.GroupMapper;
 import com.caixy.shortlink.mapper.LinkGotoMapper;

@@ -1,6 +1,7 @@
 package com.caixy.shortlink.model.dto.email;
 
 import com.caixy.shortlink.common.BaseSerializablePayload;
+import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,6 +17,7 @@ import java.util.Map;
  */
 @Getter
 @Setter
+@Builder
 public class SendEmailRequest extends BaseSerializablePayload
 {
     /**

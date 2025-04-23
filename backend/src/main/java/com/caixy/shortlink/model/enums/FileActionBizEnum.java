@@ -22,10 +22,10 @@ public enum FileActionBizEnum
             "用户头像",
              "avatar",
             FileTypeConstant.AVATAR,
+            0,
             SizeUtils.of(2, SizeUtils.SizeType.MB),
             new HashSet<>(Arrays.asList("jpeg", "jpg", "svg", "png", "webp")),
-            SaveFileMethodEnum.LOCAL_SAVE
-    )
+            SaveFileMethodEnum.LOCAL_SAVE)
     ;
     /**
      * 用途说明
@@ -40,7 +40,12 @@ public enum FileActionBizEnum
     /**
      * 文件上传业务类型
      */
-    private final String value;
+    private final String label;
+
+    /**
+    * 上传业务code唯一值
+    */
+    private final Integer value;
 
     /**
      * 文件上传业务类型最大限制
@@ -59,13 +64,16 @@ public enum FileActionBizEnum
 
     FileActionBizEnum(String text,
                       String routePath,
-                      String value,
+                      String label,
+                      Integer value,
                       SizeUtils.ByteSize maxSize,
                       Set<String> fileSuffix,
-                      SaveFileMethodEnum saveFileMethod)
+                      SaveFileMethodEnum saveFileMethod
+                      )
     {
         this.text = text;
         this.routePath = routePath;
+        this.label = label;
         this.value = value;
         this.maxSize = maxSize;
         this.fileSuffix = fileSuffix;
@@ -78,7 +86,7 @@ public enum FileActionBizEnum
      * @param value
      * @return
      */
-    public static FileActionBizEnum getEnumByValue(String value)
+    public static FileActionBizEnum getEnumByValue(Integer value)
     {
         if (ObjectUtils.isEmpty(value))
         {
@@ -106,7 +114,7 @@ public enum FileActionBizEnum
     {
         // /{value}/{userId}/{fileName}
         // 格式：/attachment/12345/8d2f03a7-md5hash12345
-        return Paths.get(value, userId.toString(), fileName);
+        return Paths.get(label, userId.toString(), fileName);
     }
 
     /**
@@ -120,7 +128,7 @@ public enum FileActionBizEnum
     {
         // /{value}/{userId}
         // 格式：/attachment/12345/
-        return Paths.get(value, userId.toString());
+        return Paths.get(label, userId.toString());
     }
 
 

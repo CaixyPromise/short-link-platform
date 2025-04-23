@@ -6,7 +6,6 @@ import com.caixy.shortlink.common.Result;
 import com.caixy.shortlink.common.DeleteRequest;
 import com.caixy.shortlink.common.ErrorCode;
 import com.caixy.shortlink.common.ResultUtils;
-import com.caixy.shortlink.constant.UserConstant;
 import com.caixy.shortlink.exception.BusinessException;
 import com.caixy.shortlink.exception.ThrowUtils;
 import com.caixy.shortlink.model.dto.linkBrowserStats.LinkBrowserStatsAddRequest;
@@ -18,7 +17,7 @@ import com.caixy.shortlink.model.enums.UserRoleEnum;
 import com.caixy.shortlink.model.vo.user.UserVO;
 import com.caixy.shortlink.model.vo.linkBrowserStats.LinkBrowserStatsVO;
 import com.caixy.shortlink.service.LinkBrowserStatsService;
-import com.caixy.shortlink.manager.Authorization.AuthManager;
+import com.caixy.shortlink.manager.authorization.AuthManager;
 
 import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;

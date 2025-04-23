@@ -3,6 +3,7 @@
 // API 更新时间：
 // API 唯一标识：
 import * as userController from './userController';
+import * as sdkController from './sdkController';
 import * as linkStatsTodayController from './linkStatsTodayController';
 import * as linkOsStatsController from './linkOsStatsController';
 import * as linkNetworkStatsController from './linkNetworkStatsController';
@@ -25,6 +26,7 @@ import * as captchaController from './captchaController';
 import * as linkAccessStatsController from './linkAccessStatsController';
 export default {
   userController,
+  sdkController,
   linkStatsTodayController,
   linkOsStatsController,
   linkNetworkStatsController,

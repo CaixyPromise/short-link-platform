@@ -14,7 +14,7 @@ import com.caixy.shortlink.model.vo.group.GroupItemVO;
 import com.caixy.shortlink.model.vo.user.UserVO;
 import com.caixy.shortlink.model.vo.group.GroupVO;
 import com.caixy.shortlink.service.GroupService;
-import com.caixy.shortlink.manager.Authorization.AuthManager;
+import com.caixy.shortlink.manager.authorization.AuthManager;
 
 import com.caixy.shortlink.utils.StringUtils;
 import jakarta.validation.Valid;

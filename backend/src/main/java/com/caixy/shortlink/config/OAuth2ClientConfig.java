@@ -1,7 +1,7 @@
 package com.caixy.shortlink.config;
 
 import com.caixy.shortlink.config.properties.OAuth2ClientProperties;
-import com.caixy.shortlink.manager.OAuth.annotation.InjectOAuthConfig;
+import com.caixy.shortlink.manager.oauth.annotation.InjectOAuthConfig;
 import lombok.Data;
 
 import lombok.RequiredArgsConstructor;

@@ -50,33 +50,6 @@ public class RedisManager
     private final RedisTemplate<String, Object> redisTemplate;
 
     /**
-     * 根据枚举获取Key，并且根据字段值生成完整的Key值，自动拼接冒号
-     *
-     * @author CAIXYPROMISE
-     * @version 2.0
-     * @since 2024/2/16 21:02
-     */
-    private String getFullKey(BaseCacheEnum keyEnum, Object itemName)
-    {
-        // 使用StringBuilder来构建完整的Key
-        StringBuilder fullKey = new StringBuilder(keyEnum.getKey());
-
-        // 确保Key以冒号结尾
-        if (fullKey.charAt(fullKey.length() - 1) != ':')
-        {
-            fullKey.append(':');
-        }
-
-        // 如果itemName不为空，追加到Key后面
-        if (itemName != null)
-        {
-            fullKey.append(itemName);
-        }
-
-        return fullKey.toString();
-    }
-
-    /**
      * 删除Key的数据
      *
      * @author CAIXYPROMISE
@@ -380,14 +353,15 @@ public class RedisManager
      * @return 如果成功设置（键之前不存在），返回 true；否则返回 false
      */
     public Boolean setIfAbsent(BaseCacheEnum key, String value, Object... keyItem) {
+        String keyStr = "IF_PRESENT:" + key.generateKey(keyItem);
         if (key.getExpireSeconds() > 0) {
             // 尝试设置键值并指定过期时间
             return Boolean.TRUE.equals(
-                    stringRedisTemplate.opsForValue().setIfAbsent(key.generateKey(keyItem), value, key.getExpire(), key.getTimeUnit())
+                    stringRedisTemplate.opsForValue().setIfAbsent(keyStr, value, key.getExpire(), key.getTimeUnit())
             );
         }
         // 尝试设置键值但不指定过期时间
-        return Boolean.TRUE.equals(stringRedisTemplate.opsForValue().setIfAbsent(key.generateKey(keyItem), value));
+        return Boolean.TRUE.equals(stringRedisTemplate.opsForValue().setIfAbsent(keyStr, value));
     }
 
     // region 集合操作

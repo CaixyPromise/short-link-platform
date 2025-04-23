@@ -4664,6 +4664,11 @@ ini@^1.3.5:
   resolved "https://mirrors.cloud.tencent.com/npm/ini/-/ini-1.3.8.tgz#a29da425b48806f34767a4efce397269af28432c"
   integrity sha512-JV/yugV2uzW5iMRSiZAyDtQd+nxtUnjeLt0acNdw98kKLrvuRVyB80tsREOE7yvGVgalhZ6RNXCmEHkUKBKxew==
 
+input-otp@^1.4.2:
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/input-otp/-/input-otp-1.4.2.tgz#f4d3d587d0f641729e55029b3b8c4870847f4f07"
+  integrity sha512-l3jWwYNvrEa6NTCt7BECfCm48GvwuZzkoeG3gBL2w4CHeOXW3eKFmf9UNYkNfYc3mxMrthMnxjIE07MT0zLBQA==
+
 internal-slot@^1.0.4, internal-slot@^1.0.7:
   version "1.0.7"
   resolved "https://mirrors.cloud.tencent.com/npm/internal-slot/-/internal-slot-1.0.7.tgz#c06dcca3ed874249881007b0a5523b172a190802"

@@ -38,7 +38,7 @@ public class RabbitMqConfiguration
     {
         //需要传入
         RabbitAdmin rabbitAdmin = new RabbitAdmin(cachingConnectionFactory());
-        rabbitAdmin.setAutoStartup(true);
+//        rabbitAdmin.setAutoStartup(true);
         return rabbitAdmin;
     }
 

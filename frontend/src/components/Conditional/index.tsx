@@ -1,10 +1,20 @@
 "use client"
-import React, { ReactNode, isValidElement, createContext, useContext } from 'react';
+import React, {
+    ReactNode,
+    isValidElement,
+    createContext,
+    useContext,
+    cloneElement,
+    useEffect,
+    useState,
+    Fragment
+} from 'react';
 
 type ConditionalProps<T> = {
     value?: T;
     children?: ReactNode;
     strict?: boolean;
+    clientOnly?: boolean;
 };
 
 type ConditionWhenProps<T> = {
@@ -77,8 +87,38 @@ const Condition = {
 // 创建上下文用于传递 value
 const ConditionalContext = createContext<any>(null);
 
-const Conditional = <T,>({ value, children, strict = false }: ConditionalProps<T>): React.ReactNode => {
+function containsCondition(node: ReactNode): boolean {
+    let found = false
+    React.Children.forEach(node, child => {
+        if (found) return
+        if (isValidElement(child)) {
+            const name = (child.type as any).displayName
+            if (name?.startsWith('Condition.')) {
+                found = true
+            } else {
+                found ||= containsCondition(child.props.children)
+            }
+        }
+    })
+    return found
+}
+function useHasMounted() {
+    const [m, setM] = useState(false)
+    useEffect(() => setM(true), [])
+    return m
+}
+
+const Conditional = <T,>({ value, children, clientOnly, strict = false }: ConditionalProps<T>): React.ReactNode => {
+    const mounted   = useHasMounted()
+
     const parentValue = useContext(ConditionalContext);
+    /* ---------- SSR defer ---------- */
+    const defer = clientOnly || containsCondition(children)
+    if (!mounted && defer) {
+        /* 占位而不是 null，保证 DOM 一致 */
+        return <Fragment />
+    }
+
 
     // 如果当前 Conditional 没有提供 value，则使用父级的 value
     const contextValue = value !== undefined ? value : parentValue;
@@ -94,24 +134,32 @@ const Conditional = <T,>({ value, children, strict = false }: ConditionalProps<T
         return null;
     }
 
-    const hasConditionComponent = React.Children.toArray(children).some(child => {
-        if (isValidElement(child)) {
-            const displayName = (child.type as any).displayName;
-            return displayName && displayName.startsWith('Condition.');
-        }
-        return false;
-    });
+    const hasConditionComponent = (node: ReactNode): boolean => {
+        let found = false
+        React.Children.forEach(node, child => {
+            if (found) return
+            if (isValidElement(child)) {
+                const displayName = (child.type as any).displayName
+                if (displayName?.startsWith('Condition.')) {
+                    found = true
+                } else {
+                    found = hasConditionComponent(child.props.children)
+                }
+            }
+        })
+        return found
+    }
 
-    if (!hasConditionComponent) {
+
+
+    if (!hasConditionComponent(children)) {
         if (contextValue) {
-            // If there are no Condition.* components and value is truthy, render the children.
             return (
                 <ConditionalContext.Provider value={contextValue}>
                     {children}
                 </ConditionalContext.Provider>
             );
         } else {
-            // If value is falsy, do not render the children.
             return null;
         }
     }
@@ -132,7 +180,6 @@ const Conditional = <T,>({ value, children, strict = false }: ConditionalProps<T
                 case 'Condition.When': {
                     if (hasMatched) return;
                     const conditionResult = evaluateTest(props.test, contextValue);
-
                     const { whenChildren, elseChildren, elseCount } = separateWhenElseChildren(props.children);
 
                     if (elseCount > 1) {
@@ -187,21 +234,22 @@ const Conditional = <T,>({ value, children, strict = false }: ConditionalProps<T
                 }
 
                 default:
-                    // 处理嵌套的 Conditional
-                    if ((type as any) === Conditional) {
-                        output.push(
-                            <ConditionalContext.Provider value={contextValue}>
-                                {React.cloneElement(child)}
-                            </ConditionalContext.Provider>
-                        );
-                    } else {
-                        output.push(child);
-                    }
-                    break;
+                    const inner = processChildren(props.children)
+
+                    // 如果内部有 Condition.* 被解析到，返回处理后的 clone；
+                    // 否则保持原状
+                    output.push(
+                      inner != null
+                        ? cloneElement(child, { ...props, children: inner })
+                        : child
+                    )
+                    break
             }
         });
 
-        return output.length > 0 ? <>{output}</> : null;
+        return output.length
+          ? <>{React.Children.toArray(output)}</>
+          : null
     };
 
     const separateWhenElseChildren = (children: ReactNode): { whenChildren: ReactNode[]; elseChildren: ReactNode[]; elseCount: number } => {

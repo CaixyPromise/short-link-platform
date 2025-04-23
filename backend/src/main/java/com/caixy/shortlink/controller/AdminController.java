@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.caixy.shortlink.annotation.AuthCheck;
 import com.caixy.shortlink.common.Result;
 import com.caixy.shortlink.common.ResultUtils;
-import com.caixy.shortlink.manager.Authorization.AuthManager;
+import com.caixy.shortlink.manager.authorization.AuthManager;
 import com.caixy.shortlink.model.enums.UserRoleEnum;
 import com.caixy.shortlink.model.vo.user.UserVO;
 import lombok.AllArgsConstructor;

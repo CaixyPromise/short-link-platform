@@ -1,6 +1,6 @@
 package com.caixy.shortlink.controller;
 
-import com.caixy.shortlink.manager.Limiter.annotation.RateLimitFlow;
+import com.caixy.shortlink.manager.limiter.annotation.RateLimitFlow;
 import com.caixy.shortlink.common.Result;
 import com.caixy.shortlink.common.ResultUtils;
 import com.caixy.shortlink.model.enums.RedisLimiterEnum;

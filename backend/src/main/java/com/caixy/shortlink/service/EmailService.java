@@ -1,10 +1,10 @@
 package com.caixy.shortlink.service;
 
-import com.caixy.shortlink.manager.Email.core.EmailSenderEnum;
+import com.caixy.shortlink.manager.email.models.BaseEmailContentDTO;
+import com.caixy.shortlink.manager.email.models.EmailSenderEnum;
+import com.caixy.shortlink.manager.email.models.captcha.BaseEmailCaptchaDTO;
 import com.caixy.shortlink.model.dto.email.SendEmailRequest;
 import com.caixy.shortlink.model.vo.user.UserVO;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @Name: com.caixy.shortlink.service.EmailService
@@ -15,6 +15,11 @@ import jakarta.servlet.http.HttpServletRequest;
 public interface EmailService
 {
 
-    Boolean sendEmail(SendEmailRequest sendEmailRequest, EmailSenderEnum senderEnum, HttpServletRequest request,
-                      UserVO userInfo);
+    void sendCaptchaEmail(String toEmail, BaseEmailCaptchaDTO emailContentDTO, EmailSenderEnum senderEnum);
+
+    void sendEmail(BaseEmailContentDTO emailContentDTO, String toEmail, EmailSenderEnum senderEnum);
+
+    Boolean sendEmail(SendEmailRequest sendEmailRequest, EmailSenderEnum senderEnum, UserVO userInfo);
+
+    void verifyCaptcha(EmailSenderEnum emailSenderEnum, String toEmail, String code);
 }

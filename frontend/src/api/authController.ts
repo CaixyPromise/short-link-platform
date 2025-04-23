@@ -2,10 +2,44 @@
 /* eslint-disable */
 import request from '@/lib/request';
 
+/** 此处后端没有提供注释 POST /auth/activate/${param0}/${param1} */
+export async function doActivateUser(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.doActivateUserParams,
+  body: API.UserActivationRequest,
+  options?: { [key: string]: any },
+) {
+  const { token: param0, code: param1, ...queryParams } = params;
+  return request<API.ResultBoolean>(`/auth/activate/${param0}/${param1}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    params: { ...queryParams },
+    data: body,
+    ...(options || {}),
+  });
+}
+
 /** 此处后端没有提供注释 GET /auth/get/login */
 export async function getLoginUser(options?: { [key: string]: any }) {
   return request<API.ResultLoginUserVO>('/auth/get/login', {
     method: 'GET',
+    ...(options || {}),
+  });
+}
+
+/** 此处后端没有提供注释 GET /auth/get/registration_info */
+export async function getRegistrationInfoByParams(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getRegistrationInfoByParamsParams,
+  options?: { [key: string]: any },
+) {
+  return request<API.ResultRegistrationInfo>('/auth/get/registration_info', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
     ...(options || {}),
   });
 }
@@ -77,6 +111,21 @@ export async function initOAuthLogin(
       authorizationUrlRequest: undefined,
       ...queryParams['authorizationUrlRequest'],
     },
+    ...(options || {}),
+  });
+}
+
+/** 此处后端没有提供注释 POST /auth/register */
+export async function userRegister(
+  body: API.UserRegisterRequest,
+  options?: { [key: string]: any },
+) {
+  return request<API.ResultBoolean>('/auth/register', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
     ...(options || {}),
   });
 }

@@ -49,7 +49,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
       </div>
       <div className="hidden space-y-6 p-10 pb-16 md:block">
         <div className="space-y-0.5">
-          <h2 className="text-2xl font-bold tracking-tight">个人设置</h2>
+          <h2 className="text-2xl font-bold text-white tracking-tight">个人设置</h2>
           <p className="text-muted-foreground">管理你的账号信息</p>
         </div>
         <Separator className="my-6" />

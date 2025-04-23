@@ -15,7 +15,7 @@ public enum UserGenderEnum
 {
     UNKNOWN("未知", 0),
     MALE("男", 1),
-    FEMALE("被封号", 2);
+    FEMALE("女", 2);
 
     private final String text;
 

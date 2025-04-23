@@ -20,8 +20,8 @@ const InitLayoutProvider:React.FC<{
             duration: 3000,
         })
         // 切换到登录路径
-        location.href = "/login"
-    },[]);
+        location.href = "/auth"
+    },[toast]);
 
     const fetchUserInfo = useCallback(async () =>
     {
@@ -40,7 +40,7 @@ const InitLayoutProvider:React.FC<{
     }, [])
     useEffect(() =>
     {
-        if (pathname !== "/login") {
+        if (pathname !== "/auth" ) {
             fetchUserInfo()
         }
     }, []);

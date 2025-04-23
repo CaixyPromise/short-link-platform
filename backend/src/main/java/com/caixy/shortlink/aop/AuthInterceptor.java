@@ -3,7 +3,7 @@ package com.caixy.shortlink.aop;
 import com.caixy.shortlink.annotation.AuthCheck;
 import com.caixy.shortlink.common.ErrorCode;
 import com.caixy.shortlink.exception.BusinessException;
-import com.caixy.shortlink.manager.Authorization.AuthManager;
+import com.caixy.shortlink.manager.authorization.AuthManager;
 import com.caixy.shortlink.model.enums.UserRoleEnum;
 import com.caixy.shortlink.model.vo.user.UserVO;
 import jakarta.annotation.Resource;

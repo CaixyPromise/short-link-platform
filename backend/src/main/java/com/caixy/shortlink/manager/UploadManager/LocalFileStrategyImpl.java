@@ -5,7 +5,7 @@ import com.caixy.shortlink.manager.UploadManager.annotation.UploadMethodTarget;
 import com.caixy.shortlink.common.ErrorCode;
 import com.caixy.shortlink.config.LocalFileConfig;
 import com.caixy.shortlink.exception.BusinessException;
-import com.caixy.shortlink.strategy.UploadFileMethodStrategy;
+import com.caixy.shortlink.manager.file.strategy.UploadFileMethodStrategy;
 import com.caixy.shortlink.model.dto.file.UploadFileDTO;
 import com.caixy.shortlink.model.enums.FileActionBizEnum;
 import com.caixy.shortlink.model.enums.SaveFileMethodEnum;
@@ -38,9 +38,9 @@ public class LocalFileStrategyImpl implements UploadFileMethodStrategy
 
     public Path saveFile(MultipartFile multipartFile, UploadFileDTO fileConfig)
     {
-        UploadFileDTO.FileInfo fileInfo = fileConfig.getFileInfo();
-        String filename = fileInfo.getFileInnerName(); // 文件名
-        Path filePath = fileInfo.getFilePath();
+        UploadFileDTO.FileSaveInfo fileSaveInfo = fileConfig.getFileSaveInfo();
+        String filename = fileSaveInfo.getFileInnerName(); // 文件名
+        Path filePath = fileSaveInfo.getFilePath();
         FileActionBizEnum fileActionBizEnum = fileConfig.getFileActionBizEnum();
         Long userId = fileConfig.getUserId();
 
@@ -61,7 +61,7 @@ public class LocalFileStrategyImpl implements UploadFileMethodStrategy
             multipartFile.transferTo(file); // 保存文件到指定位置
             // 返回文件的相对路径：<saveLocation>/<fileActionBizEnum>/<userId>/<filename>
             return localFileConfig.getRootLocation().resolve(
-                    Paths.get(fileActionBizEnum.getValue(),
+                    Paths.get(fileActionBizEnum.getLabel(),
                             String.valueOf(userId),
                             filename));
         }
@@ -116,9 +116,9 @@ public class LocalFileStrategyImpl implements UploadFileMethodStrategy
 
 
     @Override
-    public String buildFileURL(Long userId, String fileName)
+    public String buildFileURL(Long userId, String fileName, FileActionBizEnum fileActionBizEnum)
     {
-        String pathPattern = localFileConfig.getStaticPath() + "/" + FileActionBizEnum.USER_AVATAR.getRoutePath();
+        String pathPattern = localFileConfig.getStaticPath() + "/" + fileActionBizEnum.getRoutePath();
         return String.format("%s%s/%s/%s", CommonConstant.BACKEND_URL + "/api", pathPattern, userId, fileName);
     }
 }

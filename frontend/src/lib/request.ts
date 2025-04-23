@@ -39,9 +39,9 @@ axiosInstance.interceptors.response.use(
             // 不是获取用户信息接口，或者不是登录页面，则跳转到登录页面
             if (
                 !response.request.responseURL.includes("user/get/login") &&
-                !window.location.pathname.includes("/login")
+                !window.location.pathname.includes("/auth")
             ) {
-                window.location.href = `/login?redirect=${window.location.href}`;
+                window.location.href = `/auth?redirect=${window.location.href}`;
             }
         } else if (data.code !== 0) {
             // 其他错误
@@ -57,3 +57,4 @@ axiosInstance.interceptors.response.use(
 );
 
 export default axiosInstance;
+

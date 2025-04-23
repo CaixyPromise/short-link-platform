@@ -25,13 +25,29 @@ declare namespace API {
     uuid?: string;
   };
 
+  type checkFileExistParams = {
+    scene: number;
+    sha256: string;
+    size: number;
+  };
+
+  type CheckFileExistResponse = {
+    token?: string;
+    exist?: boolean;
+  };
+
   type DeleteRequest = {
     id?: number;
   };
 
+  type doActivateUserParams = {
+    token: string;
+    code: string;
+  };
+
   type downloadFileByIdParams = {
     id: string;
-    bizName: string;
+    bizName: number;
   };
 
   type EncryptAccountVO = {
@@ -86,6 +102,10 @@ declare namespace API {
   type getOnlineUsersParams = {
     page?: number;
     size?: number;
+  };
+
+  type getRegistrationInfoByParamsParams = {
+    token: string;
   };
 
   type getUserByIdParams = {
@@ -187,16 +207,16 @@ declare namespace API {
   type IPageShortLinkStatsAccessRecordRespDTO = {
     size?: number;
     current?: number;
-    records?: ShortLinkStatsAccessRecordRespDTO[];
     total?: number;
+    records?: ShortLinkStatsAccessRecordRespDTO[];
     pages?: number;
   };
 
   type IPageUserFeedbackInfoVO = {
     size?: number;
     current?: number;
-    records?: UserFeedbackInfoVO[];
     total?: number;
+    records?: UserFeedbackInfoVO[];
     pages?: number;
   };
 
@@ -731,7 +751,7 @@ declare namespace API {
     userName?: string;
     userAvatar?: string;
     userProfile?: string;
-    userRole?: 'USER' | 'ADMIN' | 'BAN';
+    userRole?: 'USER' | 'ADMIN' | 'BAN' | 'UNAUTHORIZED';
     token?: string;
   };
 
@@ -1063,6 +1083,11 @@ declare namespace API {
     shortUri: string;
   };
 
+  type RegistrationInfo = {
+    email?: string;
+    nickName?: string;
+  };
+
   type ResultAboutMeVO = {
     code?: number;
     data?: AboutMeVO;
@@ -1090,6 +1115,12 @@ declare namespace API {
   type ResultCaptchaVO = {
     code?: number;
     data?: CaptchaVO;
+    message?: string;
+  };
+
+  type ResultCheckFileExistResponse = {
+    code?: number;
+    data?: CheckFileExistResponse;
     message?: string;
   };
 
@@ -1333,6 +1364,12 @@ declare namespace API {
     message?: string;
   };
 
+  type ResultRegistrationInfo = {
+    code?: number;
+    data?: RegistrationInfo;
+    message?: string;
+  };
+
   type ResultShortLinkStatsRespDTO = {
     code?: number;
     data?: ShortLinkStatsRespDTO;
@@ -1508,7 +1545,8 @@ declare namespace API {
   };
 
   type UploadFileRequest = {
-    biz?: string;
+    biz?: number;
+    token?: string;
   };
 
   type User = {
@@ -1516,7 +1554,7 @@ declare namespace API {
     createTime?: string;
     updateTime?: string;
     isDeleted?: number;
-    userAccount?: string;
+    userName?: string;
     nickName?: string;
     userPassword?: string;
     userPhone?: string;
@@ -1526,6 +1564,11 @@ declare namespace API {
     userProfile?: string;
     userRole?: string;
     deletionTime?: string;
+  };
+
+  type UserActivationRequest = {
+    password?: string;
+    confirmPassword?: string;
   };
 
   type UserAddRequest = {
@@ -1574,13 +1617,9 @@ declare namespace API {
 
   type UserRegisterRequest = {
     userName?: string;
-    userPhone?: string;
-    userAccount?: string;
-    userPassword?: string;
-    userEmail?: string;
-    checkPassword?: string;
-    captcha?: string;
-    captchaId?: string;
+    userEmail: string;
+    captcha: string;
+    captchaId: string;
   };
 
   type UserResetEmailRequest = {
@@ -1605,18 +1644,18 @@ declare namespace API {
 
   type UserVO = {
     id?: number;
-    userAccount?: string;
+    userName?: string;
+    nickName?: string;
     unionId?: string;
     githubId?: number;
     githubUserName?: string;
     userPhone?: string;
     userEmail?: string;
     mpOpenId?: string;
-    nickName?: string;
     userGender?: number;
     userAvatar?: string;
     userProfile?: string;
-    userRole?: 'USER' | 'ADMIN' | 'BAN';
+    userRole?: 'USER' | 'ADMIN' | 'BAN' | 'UNAUTHORIZED';
     createTime?: string;
     updateTime?: string;
     isDelete?: number;

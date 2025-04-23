@@ -2,10 +2,10 @@ package com.caixy.shortlink.service.impl;
 
 import com.caixy.shortlink.common.ErrorCode;
 import com.caixy.shortlink.exception.BusinessException;
-import com.caixy.shortlink.factory.CaptchaFactory;
+import com.caixy.shortlink.manager.captcha.factory.CaptchaFactory;
 import com.caixy.shortlink.model.vo.captcha.CaptchaVO;
 import com.caixy.shortlink.service.CaptchaService;
-import com.caixy.shortlink.strategy.CaptchaGenerationStrategy;
+import com.caixy.shortlink.manager.captcha.strategy.CaptchaGenerationStrategy;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -52,6 +52,6 @@ public class CaptchaServiceImpl implements CaptchaService
     @Override
     public boolean verifyCaptcha(String code, String captchaId)
     {
-        return captchaFactory.verifyCaptcha(code, captchaId);
+        return !captchaFactory.verifyCaptcha(code, captchaId);
     }
 }

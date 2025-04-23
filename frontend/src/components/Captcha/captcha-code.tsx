@@ -1,118 +1,135 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, forwardRef, useImperativeHandle } from 'react';
 import { Captcha } from './captcha-root';
 import { Button } from '@/components/ui/button';
 import { CaptchaProps, CaptchaRef } from '@/components/Captcha/typing';
 import useDebounce from '@/hooks/useDebounce';
 
 export interface CodeCaptchaProps extends CaptchaProps {
-    doSend: (value: string) => boolean | Promise<boolean> | undefined;
-    cooldownSeconds?: number;
-    onCooldownText?: (cooldown: number) => string;
-    cooldownText?: string;
+	doSend: (value: string) => boolean | Promise<boolean> | undefined;
+	cooldownSeconds?: number;
+	onCooldownText?: (cooldown: number) => string;
+	cooldownText?: string;
+	buttonClass?: string;
 }
 
-const CodeCaptcha = React.forwardRef<CaptchaRef, CodeCaptchaProps>(
-    ({
-        doSend,
-        cooldownSeconds = 60,
-        cooldownText = '发送验证码',
-        onCooldownText,
-        inputClassName,
-        carrierClassName,
-        inputProps,
-        ...props
-    },
-    ref
-) => {
-    const [isButtonDisabled, setIsButtonDisabled] = useState(true);
-    const [remainingTime, setRemainingTime] = useState(0);
-    const doSendRef = useRef(doSend);
+export interface CodeCaptchaRef extends CaptchaRef {
+	isSend?: boolean;
+	setSendStatus: (isSent: boolean) => void; // 外部调用时不需要传入时间
+}
 
+const CodeCaptcha = forwardRef<CodeCaptchaRef, CodeCaptchaProps>(
+	({
+		 doSend,
+		 cooldownSeconds = 60,
+		 cooldownText = '发送验证码',
+		 onCooldownText,
+		 inputClassName,
+		 carrierClassName,
+		 inputProps,
+		 buttonClass,
+		 ...props
+	 },
+	 ref
+	) => {
+		const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+		const [remainingTime, setRemainingTime] = useState(0);
+		const doSendRef = useRef(doSend);
 
-    useEffect(() => {
-        if (!doSend) {
-            throw new Error('Captcha.Code Error: doSend is required');
-        }
-        doSendRef.current = doSend;
-    }, [doSend]);
+		useEffect(() => {
+			if (!doSend) {
+				throw new Error('Captcha.Code Error: doSend is required');
+			}
+			doSendRef.current = doSend;
+		}, [doSend]);
 
-    const [debouncedSend] = useDebounce(async () => {
-        // 获取输入框的值
-        const inputValue = ref?.current?.getValue() || '';
+		// 发送验证码并进入倒计时
+		const [debouncedSend] = useDebounce(async () => {
+			const inputValue = ref?.current?.getValue() || '';
 
-        // 调用 doSend，并传递输入框的值
-        const result = await doSendRef.current(inputValue);
+			const result = await doSendRef.current(inputValue);
 
-        // 根据返回值决定是否启动倒计时和禁用按钮
-        if (result || result === undefined) {
-            setIsButtonDisabled(true);
-            setRemainingTime(cooldownSeconds);
-            localStorage.setItem(
-                'codeCaptchaCooldown',
-                (Date.now() + cooldownSeconds * 1000).toString()
-            );
-        }
-    }, 300);
+			if (result || result === undefined) {
+				setSendStatus(true);
+			}
+		}, 300);
 
-    useEffect(() => {
-        const storedTime = localStorage.getItem('codeCaptchaCooldown');
-        if (storedTime) {
-            const timeLeft = parseInt(storedTime, 10) - Date.now();
-            if (timeLeft > 0) {
-                setRemainingTime(Math.ceil(timeLeft / 1000));
-                setIsButtonDisabled(true);
-            } else {
-                setIsButtonDisabled(false);
-            }
-        } else {
-            setIsButtonDisabled(false);
-        }
-    }, []);
+		// 外部可控的发送状态方法
+		const setSendStatus = useCallback((isSent: boolean) => {
+			if (isSent) {
+				setIsButtonDisabled(true);
+				setRemainingTime(cooldownSeconds); // 使用内部默认时间
+				localStorage.setItem('codeCaptchaCooldown', (Date.now() + cooldownSeconds * 1000).toString());
+			} else {
+				setIsButtonDisabled(false);
+				setRemainingTime(0);
+				localStorage.removeItem('codeCaptchaCooldown');
+			}
+		}, [cooldownSeconds]);
 
-    useEffect(() => {
-        if (remainingTime > 0) {
-            const timer = setTimeout(() => {
-                setRemainingTime((prevTime) => prevTime - 1);
-                if (remainingTime === 1) {
-                    setIsButtonDisabled(false);
-                    localStorage.removeItem('codeCaptchaCooldown');
-                } else {
-                    localStorage.setItem(
-                        'codeCaptchaCooldown',
-                        (Date.now() + (remainingTime - 1) * 1000).toString()
-                    );
-                }
-            }, 1000);
-            return () => clearTimeout(timer);
-        }
-    }, [remainingTime]);
+		// 初始化检查是否有未完成的倒计时
+		useEffect(() => {
+			const storedTime = localStorage.getItem('codeCaptchaCooldown');
+			if (storedTime) {
+				const timeLeft = Math.ceil((parseInt(storedTime, 10) - Date.now()) / 1000);
+				if (timeLeft > 0) {
+					setSendStatus(true); // 使用内部倒计时时间
+				} else {
+					setSendStatus(false);
+				}
+			}
+		}, [setSendStatus]);
 
-    const handleSend = useCallback(() => {
-        if (!isButtonDisabled) {
-            debouncedSend();
-        }
-    }, [isButtonDisabled, debouncedSend]);
+		// 处理倒计时逻辑
+		useEffect(() => {
+			if (remainingTime > 0) {
+				const timer = setInterval(() => {
+					setRemainingTime((prevTime) => {
+						if (prevTime === 1) {
+							setSendStatus(false);
+							return 0;
+						}
+						return prevTime - 1;
+					});
+				}, 1000);
+				return () => clearInterval(timer);
+			}
+		}, [remainingTime, setSendStatus]);  // 仅监听 remainingTime 和 setSendStatus
 
-    const handleCooldownText = (cooldown: number) => {
-        if (onCooldownText) {
-            return onCooldownText(cooldown);
-        } else {
-            return `重新发送 ${cooldown} 秒`;
-        }
-    };
+		// 发送验证码按钮
+		const handleSend = useCallback(() => {
+			if (!isButtonDisabled) {
+				debouncedSend();
+			}
+		}, [isButtonDisabled, debouncedSend]);
 
-    return (
-        <Captcha {...props} inputProps={inputProps} ref={ref} inputClassName={inputClassName} carrierClassName={carrierClassName}>
-            <Button
-                onClick={handleSend}
-                disabled={isButtonDisabled}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-                {isButtonDisabled ? handleCooldownText(remainingTime) : cooldownText}
-            </Button>
-        </Captcha>
-    );
-});
+		// 计算倒计时文本
+		const handleCooldownText = (cooldown: number) => {
+			return onCooldownText ? onCooldownText(cooldown) : `重新发送 ${cooldown} 秒`;
+		};
+
+		// 通过 ref 暴露方法
+		useImperativeHandle(ref, () => ({
+			...ref?.current,
+			setSendStatus: (isSent: boolean) => {
+				setSendStatus(isSent); // 外部调用时不需要传入时间
+			},
+		}));
+
+		return (
+			<Captcha {...props} inputProps={inputProps} ref={ref} inputClassName={inputClassName}
+			         carrierClassName={carrierClassName}>
+				<Button
+					type="button"
+					onClick={handleSend}
+					disabled={isButtonDisabled}
+					className={buttonClass ?? "w-full bg-primary hover:bg-primary/90 text-primary-foreground"}
+				>
+					{isButtonDisabled ? handleCooldownText(remainingTime) : cooldownText}
+				</Button>
+			</Captcha>
+		);
+	}
+);
 
 CodeCaptcha.displayName = 'Captcha.Code';
 

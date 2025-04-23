@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.caixy.shortlink.model.dto.user.*;
 import com.caixy.shortlink.model.entity.User;
+import com.caixy.shortlink.model.vo.user.RegistrationInfo;
 import com.caixy.shortlink.model.vo.user.UserVO;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,13 +15,6 @@ import java.util.List;
  */
 public interface UserService extends IService<User>
 {
-
-    /**
-     * 用户注册
-     *
-     * @return 新用户 id
-     */
-    long userRegister(UserRegisterRequest userRegisterRequest);
 
     /**
      * 获取脱敏的用户信息
@@ -58,4 +52,10 @@ public interface UserService extends IService<User>
     Boolean updateUserAndSessionById(User user, HttpServletRequest request);
 
     Boolean resetEmail(Long id, UserResetEmailRequest userResetEmailRequest, HttpServletRequest request);
+
+    Boolean userPreRegistration(UserRegisterRequest userRegisterRequest);
+
+    RegistrationInfo getRegistrationInfoByParams(String token);
+
+    Boolean doActivateUser(String token, String code, UserActivationRequest userActivationRequest);
 }

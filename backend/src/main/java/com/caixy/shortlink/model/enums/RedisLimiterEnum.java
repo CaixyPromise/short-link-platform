@@ -20,7 +20,9 @@ public enum RedisLimiterEnum
 {
     LOGIN("login:rate-limiter", 1, 1, RateIntervalUnit.SECONDS),  // 每秒最多1次请求
     CAPTCHA("captcha-rate-limiter", 3, 1, RateIntervalUnit.SECONDS),  // 每秒最多3次请求
-    REGISTER("register-rate-limiter", 1, 1, RateIntervalUnit.SECONDS); // 每秒最多1次请求
+    REGISTER("register-rate-limiter", 1, 1, RateIntervalUnit.SECONDS), // 每秒最多1次请求
+    // 注册信息  1秒最多2次
+    REGISTER_INFO("register-info-rate-limiter", 2, 1, RateIntervalUnit.SECONDS),
     ;
 
     /**
@@ -47,22 +49,6 @@ public enum RedisLimiterEnum
         this.rate = rate;
         this.rateInterval = rateInterval;
         this.rateIntervalUnit = rateIntervalUnit;
-    }
-
-    public static RedisLimiterEnum getRedisLimiterEnum(String key)
-    {
-        if (StringUtils.isBlank(key))
-        {
-            return null;
-        }
-        for (RedisLimiterEnum redisLimiterEnum : RedisLimiterEnum.values())
-        {
-            if (redisLimiterEnum.getKey().equals(key))
-            {
-                return redisLimiterEnum;
-            }
-        }
-        return null;
     }
 
     public String generateKey(String... items)

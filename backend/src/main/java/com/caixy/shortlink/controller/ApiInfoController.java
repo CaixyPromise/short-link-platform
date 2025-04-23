@@ -4,7 +4,7 @@ import com.caixy.shortlink.common.ErrorCode;
 import com.caixy.shortlink.common.Result;
 import com.caixy.shortlink.common.ResultUtils;
 import com.caixy.shortlink.exception.BusinessException;
-import com.caixy.shortlink.manager.Authorization.AuthManager;
+import com.caixy.shortlink.manager.authorization.AuthManager;
 import com.caixy.shortlink.model.dto.api.QueryApiKeyRequest;
 import com.caixy.shortlink.model.vo.api.ApiKeyVO;
 import com.caixy.shortlink.model.vo.user.UserVO;

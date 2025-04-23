@@ -21,9 +21,14 @@ public class UserVO implements Serializable
     private Long id;
 
     /**
-     * 账号
+     * 公开账号
      */
-    private String userAccount;
+    private String userName;
+
+    /**
+    * 系统用户名
+    */
+    private String nickName;
 
 
     /**
@@ -55,11 +60,6 @@ public class UserVO implements Serializable
      * 公众号openId
      */
     private String mpOpenId;
-
-    /**
-     * 用户昵称
-     */
-    private String nickName;
 
     /**
      * 用户性别

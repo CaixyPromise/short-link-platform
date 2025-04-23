@@ -103,7 +103,7 @@ export function NavUser() {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => {
                             userLogout().then(()=> {
-                                router.push('/login')
+                                router.push('/auth')
                             })
                         }}>
                             <LogOut />

@@ -32,7 +32,7 @@ public class User extends BaseEntity implements Serializable {
     /**
      * 用户账号
      */
-    private String userAccount;
+    private String userName;
 
     /**
      * 用户昵称
