@@ -1,51 +1,48 @@
 import React from "react";
 
 const BarWave: React.FC<{
-    className?: string;
-    color?: string;
-    width?: number | string;
-    height?: number | string;
-    duration?: string;
+	className?: string;
+	color?: string;
+	width?: number | string;
+	height?: number | string;
+	duration?: string;
 }> = ({
-          className = "",
-          color = "#151515",
-          width = "2rem",
-          height = "1rem",
-          duration = "1s",
+	      className = "",
+	      color = "#151515",
+	      width = "2rem",
+	      height = "1rem",
+	      duration = "1s",
       }) => {
-    const resolvedWidth = typeof width === "number" ? `${width}px` : width;
-    const resolvedHeight = typeof height === "number" ? `${height}px` : height;
-    const barWidth = `calc(${resolvedWidth} / 4 * 3 / 4)`;
+	const resolvedWidth = typeof width === "number" ? `${width}px` : width;
+	const resolvedHeight = typeof height === "number" ? `${height}px` : height;
+	const barWidth = `calc(${resolvedWidth} / 4 * 3 / 4)`;
 
-    // Inline styles to include custom animation properties
-    const spanStyles = {
-        backgroundColor: color,
-        width: barWidth,
-        height: resolvedHeight,
-    };
+	const spanStyles = {
+		backgroundColor: color,
+		width: barWidth,
+		height: resolvedHeight,
+	};
 
-    return (
-        // Overlay container to cover the entire screen
-        <div className="fixed inset-0 bg-black bg-opacity-20 flex justify-center items-center z-10">
-            {/* Inner container to center the loading bars */}
-            <div
-                className={`flex flex-row justify-between items-center w-[${resolvedWidth}] ${className}`}
-                style={{ width: resolvedWidth }}
-            >
-                {Array.from({ length: 4 }).map((_, index) => (
-                    <span
-                        key={index}
-                        className={`animate-wave${index + 1}`}
-                        style={{
-                            ...spanStyles,
-                            animationDuration: duration,
-                            animationDelay: `${-0.15 * index}s`,
-                        }}
-                    ></span>
-                ))}
-            </div>
-            <style>
-                {`
+	return (
+		<div className="fixed inset-0 bg-black bg-opacity-20 flex justify-center items-center z-10">
+			<div
+				className={`flex flex-row justify-between items-center w-[${resolvedWidth}] ${className}`}
+				style={{width: resolvedWidth}}
+			>
+				{Array.from({length: 4}).map((_, index) => (
+					<span
+						key={index}
+						className={`animate-wave${index + 1}`}
+						style={{
+							...spanStyles,
+							animationDuration: duration,
+							animationDelay: `${-0.15 * index}s`,
+						}}
+					></span>
+				))}
+			</div>
+			<style>
+				{`
                     @keyframes wave {
                         0%, 100% {
                             transform: scaleY(1);
@@ -67,9 +64,9 @@ const BarWave: React.FC<{
                         animation: wave ${duration} ease-in-out infinite;
                     }
                 `}
-            </style>
-        </div>
-    );
+			</style>
+		</div>
+	);
 };
 
 export default BarWave;
