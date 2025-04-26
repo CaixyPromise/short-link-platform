@@ -1,17 +1,20 @@
 package com.caixy.shortlink.manager.email.factory;
 
 import com.caixy.shortlink.manager.email.annotation.EmailSender;
-import com.caixy.shortlink.manager.email.models.BaseEmailContentDTO;
-import com.caixy.shortlink.manager.email.models.EmailSenderEnum;
+import com.caixy.shortlink.manager.email.models.common.BaseEmailContentDTO;
+import com.caixy.shortlink.manager.email.models.enums.BaseEmailSenderEnum;
 import com.caixy.shortlink.manager.email.core.EmailContentGeneratorStrategy;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * Email发送类工厂
@@ -20,11 +23,12 @@ import java.util.Map;
  * @name com.caixy.shortlink.manager.Email.factory.EmailSenderFactory
  * @since 2024/10/8 上午1:07
  */
+@Slf4j
 @Service
 @AllArgsConstructor
 public class EmailSenderFactory
 {
-    private static final Map<EmailSenderEnum, EmailContentGeneratorStrategy> strategies = new HashMap<>();
+    private static final Map<BaseEmailSenderEnum, EmailContentGeneratorStrategy> strategies = new HashMap<>();
 
     private final ApplicationContext applicationContext;
 
@@ -38,18 +42,22 @@ public class EmailSenderFactory
             // 获取类上的 @EmailSenderStrategy 注解
             EmailSender annotation = bean.getClass().getAnnotation(EmailSender.class);
             // 获取注解中的所有枚举值
-            EmailSenderEnum[] emailSenderEnum = annotation.value();
-            for (EmailSenderEnum type : emailSenderEnum)
-            {
-                // 注册到策略 Map 中
-                strategies.put(type, (EmailContentGeneratorStrategy) bean);
-            }
+            BaseEmailSenderEnum[] captchaBizEnums = annotation.captcha();
+            BaseEmailSenderEnum[] textBizEnums = annotation.text();
+            // 将枚举值与策略类注册到 Map 中
+            Stream.concat(Arrays.stream(captchaBizEnums), Arrays.stream(textBizEnums))
+                .forEach((item) -> {
+                    if (strategies.containsKey(item)) {
+                        log.warn("重复注册 EmailSender 策略 [{}]，已存在的策略将被覆盖", item.getName());
+                    }
+                    strategies.put(item, (EmailContentGeneratorStrategy) bean);
+                });
         }
     }
 
     // 获取对应的邮件发送策略
     @SuppressWarnings("unchecked")
-    public <T extends BaseEmailContentDTO> EmailContentGeneratorStrategy<T> getStrategy(EmailSenderEnum emailSenderEnum)
+    public <T extends BaseEmailContentDTO> EmailContentGeneratorStrategy<T> getStrategy(BaseEmailSenderEnum emailSenderEnum)
     {
         EmailContentGeneratorStrategy<T> strategy = strategies.get(emailSenderEnum);
         if (strategy == null)

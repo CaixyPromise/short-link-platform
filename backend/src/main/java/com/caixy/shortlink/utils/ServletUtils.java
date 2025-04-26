@@ -9,6 +9,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+
 import java.io.IOException;
 import java.util.Optional;
 
@@ -21,6 +22,15 @@ import java.util.Optional;
  */
 public class ServletUtils
 {
+    public static String getRemoteIp()
+    {
+        return getRemoteIp(getRequest());
+    }
+
+    public static String getRemoteIp(HttpServletRequest request) {
+        return NetUtils.getIpAddress(request);
+    }
+
     /**
      * 获取当前会话的 Session ID
      *
@@ -76,6 +86,7 @@ public class ServletUtils
     {
         return getAttributeFromSession(key, clazz).orElse(null);
     }
+
     public static <T> T getAttributeFromSessionOrNull(String key, Class<T> clazz, HttpSession session)
     {
         return getAttributeFromSession(key, clazz, session).orElse(null);
@@ -147,12 +158,11 @@ public class ServletUtils
      * @version 1.0
      * @since 2024/10/20 上午1:16
      */
-    
-    public static Optional<ServletRequestAttributes> getRequestAttributes() {
+
+    public static Optional<ServletRequestAttributes> getRequestAttributes()
+    {
         RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
-        return attributes instanceof ServletRequestAttributes
-               ? Optional.of((ServletRequestAttributes) attributes)
-               : Optional.empty();
+        return attributes instanceof ServletRequestAttributes ? Optional.of((ServletRequestAttributes) attributes) : Optional.empty();
     }
 
 
@@ -165,9 +175,7 @@ public class ServletUtils
      */
     public static HttpServletRequest getRequest()
     {
-        return getRequestAttributes()
-                .map(ServletRequestAttributes::getRequest)
-                .orElseThrow(() -> new RuntimeException("无法检查到 Request 上下文"));
+        return getRequestAttributes().map(ServletRequestAttributes::getRequest).orElseThrow(() -> new RuntimeException("无法检查到 Request 上下文"));
     }
 
     /**
@@ -179,9 +187,7 @@ public class ServletUtils
      */
     public static HttpServletResponse getResponse()
     {
-        return getRequestAttributes()
-                .map(ServletRequestAttributes::getResponse)
-                .orElseThrow(() -> new RuntimeException("无法检查到 Request 上下文"));
+        return getRequestAttributes().map(ServletRequestAttributes::getResponse).orElseThrow(() -> new RuntimeException("无法检查到 Request 上下文"));
     }
 
     /**
@@ -224,7 +230,7 @@ public class ServletUtils
     /**
      * 从请求头部中获取指定属性
      *
-     * @param key     请求头属性的键名
+     * @param key 请求头属性的键名
      * @return 返回对应键名的请求头部属性值，如果没有找到则返回 Optional.empty()
      */
     public static Optional<String> getAttributeFromHeader(String key)
@@ -235,7 +241,7 @@ public class ServletUtils
     /**
      * 从请求头部中获取指定属性
      *
-     * @param key     请求头属性的键名
+     * @param key 请求头属性的键名
      * @return 返回对应键名的请求头部属性值，如果没有找到则返回 Optional.empty()
      */
     public static Optional<String> getAttributeFromHeader(String key, HttpServletRequest request)

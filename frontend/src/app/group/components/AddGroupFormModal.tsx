@@ -37,7 +37,7 @@ type FormData = z.infer<typeof schema>;
 export default function AddGroupFormModal({
                                               addGroupModalVisible,
                                               setAddGroupModalVisible
-                                          }: AddGroupFormModalProps): React.JSX.Element {
+                                          }: AddGroupFormModalProps): React.React.ReactNode {
     const {toast} = useToast();
     const [submitHandler, loading] = useAsyncHandler();
     const form = useForm<FormData>({

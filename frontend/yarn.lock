@@ -1424,6 +1424,11 @@
   resolved "https://mirrors.cloud.tencent.com/npm/@radix-ui/react-compose-refs/-/react-compose-refs-1.1.0.tgz#656432461fc8283d7b591dcf0d79152fae9ecc74"
   integrity sha512-b4inOtiaOnYf9KWyO3jAeeCG6FeyfY6ldiEPanbUjWd+xIk5wZeHa8yVwmrJ2vderhu/BQvzCrJI0lHd+wIiqw==
 
+"@radix-ui/react-compose-refs@1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-compose-refs/-/react-compose-refs-1.1.2.tgz#a2c4c47af6337048ee78ff6dc0d090b390d2bb30"
+  integrity sha512-z4eqJvfiNnFMHIIvXP3CY57y2WJs5g2v3X0zm9mEJkrkNv4rDxu+sg9Jh8EkXyeqBkB7SOcboo9dMVqhyrACIg==
+
 "@radix-ui/react-context@1.0.1":
   version "1.0.1"
   resolved "https://mirrors.cloud.tencent.com/npm/@radix-ui/react-context/-/react-context-1.0.1.tgz#fe46e67c96b240de59187dcb7a1a50ce3e2ec00c"
@@ -1833,12 +1838,19 @@
     "@babel/runtime" "^7.13.10"
     "@radix-ui/react-compose-refs" "1.0.1"
 
-"@radix-ui/react-slot@1.1.0", "@radix-ui/react-slot@^1.1.0":
+"@radix-ui/react-slot@1.1.0":
   version "1.1.0"
   resolved "https://mirrors.cloud.tencent.com/npm/@radix-ui/react-slot/-/react-slot-1.1.0.tgz#7c5e48c36ef5496d97b08f1357bb26ed7c714b84"
   integrity sha512-FUCf5XMfmW4dtYl69pdS4DbxKy8nj4M7SafBgPllysxmdachynNflAdp/gCsnYWNDnge6tI9onzMp5ARYc1KNw==
   dependencies:
     "@radix-ui/react-compose-refs" "1.1.0"
+
+"@radix-ui/react-slot@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-slot/-/react-slot-1.2.0.tgz#57727fc186ddb40724ccfbe294e1a351d92462ba"
+  integrity sha512-ujc+V6r0HNDviYqIK3rW4ffgYiZ8g5DEHrGJVk4x7kTlLXRDILnKX9vAUYeIsLOoDpDJ0ujpqMkjH4w2ofuo6w==
+  dependencies:
+    "@radix-ui/react-compose-refs" "1.1.2"
 
 "@radix-ui/react-switch@^1.1.0":
   version "1.1.0"
@@ -2022,6 +2034,18 @@
   version "1.10.4"
   resolved "https://mirrors.cloud.tencent.com/npm/@rushstack/eslint-patch/-/eslint-patch-1.10.4.tgz#427d5549943a9c6fce808e39ea64dbe60d4047f1"
   integrity sha512-WJgX9nzTqknM393q1QJDJmoW28kUfEnybeTfVNcNAPnIx210RXm2DiXiHzfNPJNIUUb1tJnz/l4QGtJ30PgWmA==
+
+"@stepperize/core@1.2.5":
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/@stepperize/core/-/core-1.2.5.tgz#f401eba78d24887f67d4f2650a20434c0703de20"
+  integrity sha512-2jk/yG4aZla+i67zcsXrTfzBbBx/ILtuaafsBpwZCnfVhPcvoKAPQvSm55p0Q6nQPcRVJ3nKexcR8/k5V+XQBA==
+
+"@stepperize/react@^5.1.5":
+  version "5.1.5"
+  resolved "https://registry.yarnpkg.com/@stepperize/react/-/react-5.1.5.tgz#974796341c04cfaec796d82c60a349d05c35c84b"
+  integrity sha512-2g3rWY9j4aViH3ppVHxnGHhSOy3TSUlj/F0h9bG6PKcrmmes85mMHMB1lMjA7vUtkdedczZSn90ybrwv4LT8lw==
+  dependencies:
+    "@stepperize/core" "1.2.5"
 
 "@stylelint/postcss-css-in-js@^0.37.2":
   version "0.37.3"

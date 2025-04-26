@@ -3,8 +3,8 @@ package com.caixy.shortlink.manager.email;
 import com.caixy.shortlink.config.EmailConfig;
 
 import com.caixy.shortlink.manager.email.constant.EmailConstant;
-import com.caixy.shortlink.manager.email.models.BaseEmailContentDTO;
-import com.caixy.shortlink.manager.email.models.EmailSenderEnum;
+import com.caixy.shortlink.manager.email.models.common.BaseEmailContentDTO;
+import com.caixy.shortlink.manager.email.models.enums.BaseEmailSenderEnum;
 import com.caixy.shortlink.manager.email.core.EmailContentGeneratorStrategy;
 import com.caixy.shortlink.manager.email.exception.IllegalEmailParamException;
 import com.caixy.shortlink.manager.email.factory.EmailSenderFactory;
@@ -47,7 +47,7 @@ public class EmailSenderManager
      * @version 1.0
      * @since 2024/10/9 上午12:07
      */
-    public void doSendBySync(EmailSenderEnum senderEnum, String toEmail, BaseEmailContentDTO emailContentDTO)
+    public void doSendBySync(BaseEmailSenderEnum senderEnum, String toEmail, BaseEmailContentDTO emailContentDTO)
     {
         CompletableFuture.runAsync(() -> {
             boolean sendEmail = sendEmail(senderEnum, toEmail, emailContentDTO);
@@ -65,14 +65,14 @@ public class EmailSenderManager
      * @version 1.0
      * @since 2024/10/9 上午12:07
      */
-    public boolean doSend(EmailSenderEnum senderEnum, String toEmail, BaseEmailContentDTO emailContentDTO)
+    public boolean doSend(BaseEmailSenderEnum senderEnum, String toEmail, BaseEmailContentDTO emailContentDTO)
     {
         boolean sendEmail = sendEmail(senderEnum, toEmail, emailContentDTO);
         printResultLog(toEmail, senderEnum.getName(), sendEmail);
         return sendEmail;
     }
 
-    private boolean sendEmail(EmailSenderEnum senderEnum, String toEmail, BaseEmailContentDTO emailContentDTO)
+    private boolean sendEmail(BaseEmailSenderEnum senderEnum, String toEmail, BaseEmailContentDTO emailContentDTO)
     {
         try
         {
@@ -109,7 +109,7 @@ public class EmailSenderManager
         }
     }
 
-    private String buildSubjectTitle(EmailSenderEnum emailSenderEnum)
+    private String buildSubjectTitle(BaseEmailSenderEnum emailSenderEnum)
     {
         return baseSubjectTitle + emailSenderEnum.getName();
     }

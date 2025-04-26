@@ -22,7 +22,7 @@ import { Textarea } from "@/components/ui/textarea"
 import {useToast} from "@/hooks/use-toast";
 import {postFeedback} from "@/api/feedbackController";
 import {useDialog} from "@/components/Result/contexts/ModalContext";
-import {ResultCode} from "@/constant/constant";
+import {ResultCode} from "@/enums/ResultCodeEnum";
 
 const formSchema = z.object({
 	contactName: z.string().min(2, "名字至少需要2个字符").max(50, "名字不能超过50个字符"),

@@ -16,7 +16,6 @@ import * as linkController from './linkController';
 import * as groupController from './groupController';
 import * as fileController from './fileController';
 import * as feedbackController from './feedbackController';
-import * as emailController from './emailController';
 import * as authController from './authController';
 import * as apiInfoController from './apiInfoController';
 import * as adminController from './adminController';
@@ -39,7 +38,6 @@ export default {
   groupController,
   fileController,
   feedbackController,
-  emailController,
   authController,
   apiInfoController,
   adminController,

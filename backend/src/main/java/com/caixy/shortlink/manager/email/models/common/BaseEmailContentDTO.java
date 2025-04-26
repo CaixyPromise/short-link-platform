@@ -1,4 +1,4 @@
-package com.caixy.shortlink.manager.email.models;
+package com.caixy.shortlink.manager.email.models.common;
 
 import com.caixy.shortlink.manager.email.constant.EmailConstant;
 import lombok.Getter;

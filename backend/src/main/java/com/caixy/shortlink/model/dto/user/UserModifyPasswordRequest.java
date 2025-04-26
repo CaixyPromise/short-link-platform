@@ -1,10 +1,10 @@
 package com.caixy.shortlink.model.dto.user;
 
+import com.caixy.shortlink.constant.RegexPatternConstants;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -17,28 +17,25 @@ import java.io.Serializable;
 @Data
 public class UserModifyPasswordRequest implements Serializable
 {
-    /**
-     * 旧密码
-     */
-    
+    @NotEmpty
     private String captchaCode;
 
 
     /**
      * 新密码
      */
-    
-    @Min(8)
-    @Max(20)
+    @Size(min = 8, max = 20, message = "密码长度必须在 8-20 位之间")
+    @Pattern(regexp = RegexPatternConstants.PASSWORD_REGEX, message = "密码格式不正确")
     private String newPassword;
 
     /**
      * 确定密码
      */
-    
-    @Min(8)
-    @Max(20)
+
+    @Size(min = 8, max = 20, message = "密码长度必须在 8-20 位之间")
+    @Pattern(regexp = RegexPatternConstants.PASSWORD_REGEX, message = "密码格式不正确")
     private String confirmPassword;
 
+    @Serial
     private static final long serialVersionUID = 1L;
 }

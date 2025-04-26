@@ -6,7 +6,7 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/compo
 import ReactECharts from 'echarts-for-react'
 import {useLinkStatsModal} from "@/components/LinkStatsModal/context";
 import {shortLinkStats} from "@/api/linkAccessStatsController";
-import {ResultCode} from "@/constant/constant";
+import {ResultCode} from "@/enums/ResultCodeEnum";
 import {useToast} from "@/hooks/use-toast";
 import {startOfDay, endOfDay, subDays, format} from 'date-fns';
 import Spinner from "@/components/Spinner";

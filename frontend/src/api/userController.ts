@@ -114,12 +114,65 @@ export async function modifyPassword(
   });
 }
 
+/** 此处后端没有提供注释 POST /user/modify/password/identification */
+export async function modifyPasswordStepByIdentification(options?: { [key: string]: any }) {
+  return request<API.ResultBoolean>('/user/modify/password/identification', {
+    method: 'POST',
+    ...(options || {}),
+  });
+}
+
 /** 此处后端没有提供注释 POST /user/reset/email */
 export async function resetEmail(
   body: API.UserResetEmailRequest,
   options?: { [key: string]: any },
 ) {
   return request<API.ResultBoolean>('/user/reset/email', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** 此处后端没有提供注释 POST /user/submit/reset/email/check/identify */
+export async function submitResetEmailIdentify(
+  body: API.UserResetEmailRequest,
+  options?: { [key: string]: any },
+) {
+  return request<API.ResultString>('/user/submit/reset/email/check/identify', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** 此处后端没有提供注释 POST /user/submit/reset/email/check/original */
+export async function submitResetEmail(
+  body: API.UserResetEmailRequest,
+  options?: { [key: string]: any },
+) {
+  return request<API.ResultBoolean>('/user/submit/reset/email/check/original', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** 此处后端没有提供注释 POST /user/submit/reset/email/check/valid */
+export async function submitResetEmailValidNewEmail(
+  body: API.UserResetEmailRequest,
+  options?: { [key: string]: any },
+) {
+  return request<API.ResultBoolean>('/user/submit/reset/email/check/valid', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

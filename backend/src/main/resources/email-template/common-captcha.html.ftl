@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta content="IE=edge" http-equiv="X-UA-Compatible">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${platformName} - 邮箱验证码</title>
+    <title>${platformName}- ${bizName} - 邮箱验证码</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="width: 100%; min-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">

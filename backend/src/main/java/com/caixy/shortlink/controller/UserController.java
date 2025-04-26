@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 import jakarta.servlet.http.HttpServletRequest;
+
 import java.util.List;
 
 /**
@@ -42,7 +43,7 @@ public class UserController
 {
     @Resource
     private UserService userService;
-    
+
     @Resource
     private AuthManager authManager;
 
@@ -84,12 +85,7 @@ public class UserController
         Long resultId = userService.doRegister(user);
         User newUser = userService.getById(resultId);
         // 返回结果
-        AddUserVO resultAddUserInfo = AddUserVO.builder()
-                                               .userName(newUser.getNickName())
-                                               .userAccount(newUser.getUserName())
-                                               .userPassword(defaultPassword)
-                                               .id(resultId)
-                                               .build();
+        AddUserVO resultAddUserInfo = AddUserVO.builder().userName(newUser.getNickName()).userAccount(newUser.getUserName()).userPassword(defaultPassword).id(resultId).build();
         return ResultUtils.success(resultAddUserInfo);
     }
 
@@ -121,8 +117,7 @@ public class UserController
      */
     @PostMapping("/update")
     @AuthCheck(mustRole = UserRoleEnum.ADMIN)
-    public Result<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest,
-                                      HttpServletRequest request)
+    public Result<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest, HttpServletRequest request)
     {
         if (userUpdateRequest == null || userUpdateRequest.getId() == null)
         {
@@ -182,14 +177,11 @@ public class UserController
      */
     @PostMapping("/list/page")
     @AuthCheck(mustRole = UserRoleEnum.ADMIN)
-    public Result<Page<User>> listUserByPage(@RequestBody
-                                                   UserQueryRequest userQueryRequest,
-                                             HttpServletRequest request)
+    public Result<Page<User>> listUserByPage(@RequestBody UserQueryRequest userQueryRequest, HttpServletRequest request)
     {
         long current = userQueryRequest.getCurrent();
         long size = userQueryRequest.getPageSize();
-        Page<User> userPage = userService.page(new Page<>(current, size),
-                userService.getQueryWrapper(userQueryRequest));
+        Page<User> userPage = userService.page(new Page<>(current, size), userService.getQueryWrapper(userQueryRequest));
         return ResultUtils.success(userPage);
     }
 
@@ -201,9 +193,7 @@ public class UserController
      * @return
      */
     @PostMapping("/list/page/vo")
-    public Result<Page<UserVO>> listUserVOByPage(@RequestBody
-                                                       UserQueryRequest userQueryRequest,
-                                                 HttpServletRequest request)
+    public Result<Page<UserVO>> listUserVOByPage(@RequestBody UserQueryRequest userQueryRequest, HttpServletRequest request)
     {
         if (userQueryRequest == null)
         {
@@ -213,8 +203,7 @@ public class UserController
         long size = userQueryRequest.getPageSize();
         // 限制爬虫
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-        Page<User> userPage = userService.page(new Page<>(current, size),
-                userService.getQueryWrapper(userQueryRequest));
+        Page<User> userPage = userService.page(new Page<>(current, size), userService.getQueryWrapper(userQueryRequest));
         Page<UserVO> userVOPage = new Page<>(current, size, userPage.getTotal());
         List<UserVO> userVO = userService.getUserVO(userPage.getRecords());
         userVOPage.setRecords(userVO);
@@ -233,10 +222,23 @@ public class UserController
         return ResultUtils.success(AboutMeVO.of(currentUser));
     }
 
+    /**
+     * 发送修改密码验证码邮件
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @version 2025/4/26 3:45
+     */
+    @PostMapping("/modify/password/identification")
+    public Result<Boolean> modifyPasswordStepByIdentification() {
+        UserVO loginUser = authManager.getLoginUser();
+        userService.sendModifyPasswordIdentifyCode(loginUser);
+        return ResultUtils.success(true);
+    }
+
+
     @PostMapping("/modify/password")
-    public Result<Boolean> modifyPassword(@RequestBody
-                                                UserModifyPasswordRequest userModifyPasswordRequest,
-                                          HttpServletRequest request)
+    public Result<Boolean> modifyPassword(@RequestBody @Valid UserModifyPasswordRequest userModifyPasswordRequest, HttpServletRequest request)
     {
         if (userModifyPasswordRequest == null)
         {
@@ -248,7 +250,7 @@ public class UserController
         // 如果修改成功，修改登录状态
         if (result)
         {
-            ServletUtils.removeAttributeInSession(UserConstant.USER_LOGIN_STATE);
+            result = authManager.userLogout();
         }
         return ResultUtils.success(result);
     }
@@ -261,9 +263,7 @@ public class UserController
      * @return
      */
     @PostMapping("/update/me")
-    public Result<Boolean> updateMeProfile(@RequestBody
-                                                     UserUpdateProfileRequest userUpdateProfileRequest,
-                                           HttpServletRequest request)
+    public Result<Boolean> updateMeProfile(@RequestBody UserUpdateProfileRequest userUpdateProfileRequest, HttpServletRequest request)
     {
         if (userUpdateProfileRequest == null)
         {
@@ -279,18 +279,56 @@ public class UserController
         return ResultUtils.success(true);
     }
 
-    @PostMapping("/reset/email")
-    public Result<Boolean> resetEmail(@RequestBody @Valid UserResetEmailRequest userResetEmailRequest, HttpServletRequest request)
+    @PostMapping("/submit/reset/email/check/original")
+    public Result<Boolean> submitResetEmail(@RequestBody UserResetEmailRequest userResetEmailRequest, HttpServletRequest request)
     {
-        if (userResetEmailRequest == null ||
-            StringUtils.isAnyBlank(userResetEmailRequest.getPassword(), userResetEmailRequest.getCode()))
+        if (userResetEmailRequest == null)
         {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         UserVO loginUser = authManager.getLoginUser();
-        Boolean result = userService.resetEmail(loginUser.getId(), userResetEmailRequest, request);
+        userService.submitModifyEmailCheckOriginEmail(loginUser, userResetEmailRequest.getOriginalEmail());
+        return ResultUtils.success(true);
+    }
+
+    @PostMapping("/submit/reset/email/check/identify")
+    public Result<String> submitResetEmailIdentify(@RequestBody UserResetEmailRequest userResetEmailRequest)
+    {
+        if (userResetEmailRequest == null ||
+            StringUtils.isAnyBlank(userResetEmailRequest.getPassword(), userResetEmailRequest.getCode())
+        ) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        UserVO loginUser = authManager.getLoginUser();
+        return ResultUtils.success(userService.submitModifyEmailCheckPasswordAndCode(loginUser, userResetEmailRequest.getPassword(), userResetEmailRequest.getCode()));
+    }
+
+    @PostMapping("/submit/reset/email/check/valid")
+    public Result<Boolean> submitResetEmailValidNewEmail(@RequestBody UserResetEmailRequest userResetEmailRequest)
+    {
+        if (userResetEmailRequest == null ||
+                StringUtils.isAnyBlank(userResetEmailRequest.getToken(), userResetEmailRequest.getNewEmail())
+        ) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        UserVO loginUser = authManager.getLoginUser();
+        userService.submitModifyEmailSendCodeToNewEmail(loginUser, userResetEmailRequest.getToken(), userResetEmailRequest.getNewEmail());
+        return ResultUtils.success(true);
+    }
+
+
+    @PostMapping("/reset/email")
+    public Result<Boolean> resetEmail(@RequestBody UserResetEmailRequest userResetEmailRequest)
+    {
+        if (userResetEmailRequest == null || StringUtils.isAnyBlank(userResetEmailRequest.getToken(), userResetEmailRequest.getCode()))
+        {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        UserVO loginUser = authManager.getLoginUser();
+        Boolean result = userService.modifyEmail(loginUser.getId(), userResetEmailRequest.getToken(), userResetEmailRequest.getCode());
         return ResultUtils.success(result);
     }
+
     /**
      * 获取加密后的邮箱数据
      *
@@ -299,12 +337,11 @@ public class UserController
      * @since 2024/10/14 下午10:16
      */
     @GetMapping("/get/encrypt/info")
-    public Result<EncryptAccountVO> getEncryptEmailInfo(HttpServletRequest request) {
+    public Result<EncryptAccountVO> getEncryptEmailInfo(HttpServletRequest request)
+    {
         UserVO loginUser = authManager.getLoginUser();
-        String encryptedEmail = RegexUtils.encryptText(loginUser.getUserEmail(), RegexPatternConstants.EMAIL_ENCRYPT_REGEX,
-                "$1****$2");
-        String encryptedPhone = RegexUtils.encryptText(loginUser.getUserPhone(), RegexPatternConstants.PHONE_ENCRYPT_REGEX,
-                "$1****$2");
+        String encryptedEmail = RegexUtils.encryptText(loginUser.getUserEmail(), RegexPatternConstants.EMAIL_ENCRYPT_REGEX, "$1****$2");
+        String encryptedPhone = RegexUtils.encryptText(loginUser.getUserPhone(), RegexPatternConstants.PHONE_ENCRYPT_REGEX, "$1****$2");
         return ResultUtils.success(new EncryptAccountVO(encryptedEmail, encryptedPhone));
 
     }

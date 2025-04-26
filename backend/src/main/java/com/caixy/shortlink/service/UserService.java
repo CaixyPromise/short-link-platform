@@ -45,13 +45,23 @@ public interface UserService extends IService<User>
 
     String generatePassword();
 
+    void sendModifyPasswordIdentifyCode(UserVO userVO);
+
     Boolean modifyPassword(Long userId, UserModifyPasswordRequest userModifyPasswordRequest);
 
     void validUserInfo(User user, boolean add);
 
+    User getUserInfoByIdOrThrow(Long userId);
+
     Boolean updateUserAndSessionById(User user, HttpServletRequest request);
 
-    Boolean resetEmail(Long id, UserResetEmailRequest userResetEmailRequest, HttpServletRequest request);
+    void submitModifyEmailCheckOriginEmail(UserVO userInfo, String originEmail);
+
+    String submitModifyEmailCheckPasswordAndCode(UserVO loginUser, String password, String code);
+
+    void submitModifyEmailSendCodeToNewEmail(UserVO loginUser, String token, String newEmail);
+
+    Boolean modifyEmail(Long id, String token, String code);
 
     Boolean userPreRegistration(UserRegisterRequest userRegisterRequest);
 

@@ -1,10 +1,10 @@
 "use client";
-
-import React, {useState} from "react";
+import * as React from "react"
+import  {useState} from "react";
 import {Eye, EyeOff} from "lucide-react";
-import {Input, InputProps} from "@/components/ui/input";
+import {Input} from "@/components/ui/input";
 
-const PasswordInput = React.forwardRef<HTMLInputElement, InputProps>(
+const PasswordInput = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
 	(props, ref) => {
 		const [showPassword, setShowPassword] = useState(false);
 

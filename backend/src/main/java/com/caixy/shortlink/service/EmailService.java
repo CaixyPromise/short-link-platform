@@ -1,10 +1,8 @@
 package com.caixy.shortlink.service;
 
-import com.caixy.shortlink.manager.email.models.BaseEmailContentDTO;
-import com.caixy.shortlink.manager.email.models.EmailSenderEnum;
-import com.caixy.shortlink.manager.email.models.captcha.BaseEmailCaptchaDTO;
-import com.caixy.shortlink.model.dto.email.SendEmailRequest;
-import com.caixy.shortlink.model.vo.user.UserVO;
+import com.caixy.shortlink.manager.email.models.common.BaseEmailContentDTO;
+import com.caixy.shortlink.manager.email.models.enums.BaseEmailSenderEnum;
+import com.caixy.shortlink.manager.email.models.enums.EmailCaptchaBizEnum;
 
 /**
  * @Name: com.caixy.shortlink.service.EmailService
@@ -15,11 +13,7 @@ import com.caixy.shortlink.model.vo.user.UserVO;
 public interface EmailService
 {
 
-    void sendCaptchaEmail(String toEmail, BaseEmailCaptchaDTO emailContentDTO, EmailSenderEnum senderEnum);
+    void sendEmail(String toEmail, BaseEmailContentDTO emailContentDTO, BaseEmailSenderEnum senderEnum);
 
-    void sendEmail(BaseEmailContentDTO emailContentDTO, String toEmail, EmailSenderEnum senderEnum);
-
-    Boolean sendEmail(SendEmailRequest sendEmailRequest, EmailSenderEnum senderEnum, UserVO userInfo);
-
-    void verifyCaptcha(EmailSenderEnum emailSenderEnum, String toEmail, String code);
+    void verifyCaptcha(EmailCaptchaBizEnum emailSenderEnum, String toEmail, String code);
 }

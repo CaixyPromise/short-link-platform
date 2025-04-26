@@ -5,16 +5,19 @@ import { CaptchaProps, CaptchaRef } from '@/components/Captcha/typing';
 import useDebounce from '@/hooks/useDebounce';
 
 export interface CodeCaptchaProps extends CaptchaProps {
-	doSend: (value: string) => boolean | Promise<boolean> | undefined;
+	doSend: (value: string) => boolean | Promise<boolean>;
 	cooldownSeconds?: number;
 	onCooldownText?: (cooldown: number) => string;
 	cooldownText?: string;
 	buttonClass?: string;
+	value?: string;
+	onChange?: (value: string) => void;
 }
 
 export interface CodeCaptchaRef extends CaptchaRef {
 	isSend?: boolean;
 	setSendStatus: (isSent: boolean) => void; // 外部调用时不需要传入时间
+	clear?: () => void;
 }
 
 const CodeCaptcha = forwardRef<CodeCaptchaRef, CodeCaptchaProps>(
@@ -27,6 +30,8 @@ const CodeCaptcha = forwardRef<CodeCaptchaRef, CodeCaptchaProps>(
 		 carrierClassName,
 		 inputProps,
 		 buttonClass,
+		value,
+		onChange,
 		 ...props
 	 },
 	 ref
@@ -113,11 +118,16 @@ const CodeCaptcha = forwardRef<CodeCaptchaRef, CodeCaptchaProps>(
 			setSendStatus: (isSent: boolean) => {
 				setSendStatus(isSent); // 外部调用时不需要传入时间
 			},
+			clear: () => {
+				setSendStatus(false);
+				localStorage.removeItem("codeCaptchaCooldown")
+			}
+
 		}));
 
 		return (
 			<Captcha {...props} inputProps={inputProps} ref={ref} inputClassName={inputClassName}
-			         carrierClassName={carrierClassName}>
+			         carrierClassName={carrierClassName} value={value} onChange={onChange}>
 				<Button
 					type="button"
 					onClick={handleSend}

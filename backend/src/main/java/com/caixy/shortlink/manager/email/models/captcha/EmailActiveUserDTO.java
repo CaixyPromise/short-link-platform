@@ -1,5 +1,6 @@
 package com.caixy.shortlink.manager.email.models.captcha;
 
+import com.caixy.shortlink.manager.email.models.common.BaseEmailCaptchaDTO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -11,7 +12,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class BaseEmailActiveUserDTO extends BaseEmailCaptchaDTO
+public class EmailActiveUserDTO extends BaseEmailCaptchaDTO
 {
     /**
     * 激活链接

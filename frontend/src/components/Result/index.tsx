@@ -35,12 +35,12 @@ const Result: React.FC<ResultPageProps> = ({
 					<p>{subText}</p>
 				</div>
 				<Conditional value={extraContent}>
-					<div className="my-4 w-full">
+					<div className="flex justify-center mt-4 w-full">
 						{extraContent}
 					</div>
 				</Conditional>
 				<Conditional value={children}>
-					<div className="mt-4 w-full">
+					<div className="flex justify-center mt-4 w-full">
 						{children}
 					</div>
 				</Conditional>

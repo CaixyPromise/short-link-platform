@@ -3,7 +3,7 @@ import React from "react";
 export interface CaptchaProps {
 	className?: string;
 	value?: string;
-	onValueChange?: (value: string) => void;
+	onChange?: (value: string) => void;
 	onInputChange?: (value: string) => void; // 如果不再需要，可以移除
 	captchaId?: string | null | undefined;
 	placeholder?: string;

@@ -43,7 +43,7 @@ public class GlobalExceptionHandler
 
     // 处理校验异常
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.OK)
     @ResponseBody
     public Result<?> handleValidationExceptions(MethodArgumentNotValidException ex)
     {

@@ -224,16 +224,11 @@ public class RedisManager
      * @version 1.0
      * @since 2024/2/24 00:16
      */
-    public <K, V> HashMap<K, V> getHashMap(BaseCacheEnum enumKey,
-                                           Class<K> keyType,
-                                           Class<V> valueType,
-                                           Object... items
-    )
+    public <K, V> HashMap<K, V> getHashMap(BaseCacheEnum enumKey, Class<K> keyType, Class<V> valueType, Object... items)
     {
         Map<Object, Object> rawMap = stringRedisTemplate.opsForHash().entries(enumKey.generateKey(items));
         HashMap<K, V> typedMap = new HashMap<>();
-        rawMap.forEach((rawKey, rawValue) ->
-        {
+        rawMap.forEach((rawKey, rawValue) -> {
             K key = keyType.cast(rawKey);
             V value = valueType.cast(rawValue);
             typedMap.put(key, value);
@@ -331,9 +326,10 @@ public class RedisManager
     {
         return stringRedisTemplate.getExpire(key, TimeUnit.SECONDS);
     }
+
     /**
-    * 获取过期时间
-    */
+     * 获取过期时间
+     */
     public Long getExpire(String key, TimeUnit timeUnit)
     {
         return stringRedisTemplate.getExpire(key, timeUnit);
@@ -348,20 +344,25 @@ public class RedisManager
     /**
      * 尝试在 Redis 中设置键值对（仅当键不存在时），并设置过期时间。
      *
-     * @param key      键
-     * @param value    值
+     * @param key   键
+     * @param value 值
      * @return 如果成功设置（键之前不存在），返回 true；否则返回 false
      */
-    public Boolean setIfAbsent(BaseCacheEnum key, String value, Object... keyItem) {
+    public Boolean setIfAbsent(BaseCacheEnum key, String value, Object... keyItem)
+    {
         String keyStr = "IF_PRESENT:" + key.generateKey(keyItem);
-        if (key.getExpireSeconds() > 0) {
+        return setIfAbsent(keyStr, value, key.getExpire(), key.getTimeUnit());
+    }
+
+    public Boolean setIfAbsent(String key, String value, Long expire, TimeUnit timeUnit)
+    {
+        if (expire > 0)
+        {
             // 尝试设置键值并指定过期时间
-            return Boolean.TRUE.equals(
-                    stringRedisTemplate.opsForValue().setIfAbsent(keyStr, value, key.getExpire(), key.getTimeUnit())
-            );
+            return Boolean.TRUE.equals(stringRedisTemplate.opsForValue().setIfAbsent(key, value, expire, timeUnit));
         }
         // 尝试设置键值但不指定过期时间
-        return Boolean.TRUE.equals(stringRedisTemplate.opsForValue().setIfAbsent(keyStr, value));
+        return Boolean.TRUE.equals(stringRedisTemplate.opsForValue().setIfAbsent(key, value));
     }
 
     // region 集合操作
@@ -421,6 +422,7 @@ public class RedisManager
     {
         return stringRedisTemplate.opsForSet().members(key);
     }
+
     /**
      * 获取 Redis Set 中的所有元素
      *
@@ -528,8 +530,7 @@ public class RedisManager
         if (size != null && size >= REDIS_INVOKE_RANK_MAX_SIZE)
         {
             // 移除最低分数的记录
-            Set<ZSetOperations.TypedTuple<String>> lowestScoreSet =
-                    stringRedisTemplate.opsForZSet().rangeWithScores(key, 0, 0);
+            Set<ZSetOperations.TypedTuple<String>> lowestScoreSet = stringRedisTemplate.opsForZSet().rangeWithScores(key, 0, 0);
             if (lowestScoreSet != null && !lowestScoreSet.isEmpty())
             {
                 Double lowestScore = lowestScoreSet.iterator().next().getScore();

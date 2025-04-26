@@ -1,7 +1,7 @@
 package com.caixy.shortlink.manager.email.utils;
 
 import com.caixy.shortlink.manager.email.constant.EmailConstant;
-import com.caixy.shortlink.manager.email.models.BaseEmailContentDTO;
+import com.caixy.shortlink.manager.email.models.common.BaseEmailContentDTO;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;

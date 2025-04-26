@@ -1,7 +1,7 @@
 package com.caixy.shortlink.manager.email.core;
 
-import com.caixy.shortlink.manager.email.models.BaseEmailContentDTO;
-import com.caixy.shortlink.manager.email.models.EmailSenderEnum;
+import com.caixy.shortlink.manager.email.models.common.BaseEmailContentDTO;
+import com.caixy.shortlink.manager.email.models.enums.BaseEmailSenderEnum;
 
 /**
  * 邮件发送策略接口
@@ -12,5 +12,5 @@ import com.caixy.shortlink.manager.email.models.EmailSenderEnum;
  */
 public interface EmailContentGeneratorStrategy<T extends BaseEmailContentDTO>
 {
-    String getEmailContent(T emailContentDTO, EmailSenderEnum emailSenderEnum);
+    String getEmailContent(T emailContentDTO, BaseEmailSenderEnum emailSenderEnum);
 }

@@ -1,5 +1,6 @@
 package com.caixy.shortlink.manager.authorization.factory.TokenLoginFactory;
 
+import cn.hutool.jwt.JWTUtil;
 import com.caixy.shortlink.common.ErrorCode;
 import com.caixy.shortlink.exception.BusinessException;
 import com.caixy.shortlink.manager.authorization.factory.AuthorizationService;
@@ -12,6 +13,7 @@ import com.caixy.shortlink.model.vo.user.UserVO;
 import com.caixy.shortlink.manager.redis.RedisManager;
 import com.caixy.shortlink.utils.ServletUtils;
 import com.caixy.shortlink.utils.StringUtils;
+import com.caixy.shortlink.utils.TokenUtils;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -25,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -42,38 +45,31 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TokenLoginService implements AuthorizationService
 {
-
     private static final UserConvertor userConvertor = UserConvertor.INSTANCE;
     private final boolean singleLogin;
     private final String headerKey;
-    private final String secret;
     private final long expireTime;
     private final TimeUnit expireTimeUnit;
     private final long refreshTime;
     private final TimeUnit refreshTimeUnit;
-    private final Key key;
 
     private final RedisManager redisManager;
 
     public TokenLoginService(TokenProperties tokenProperties, RedisManager redisManager) {
         this.singleLogin = tokenProperties.isSingleLogin();
         this.headerKey = tokenProperties.getHeader();
-        this.secret = tokenProperties.getSecret();
         this.expireTime = tokenProperties.getExpireTime();
         this.expireTimeUnit = tokenProperties.getExpireTimeUnit();
         this.refreshTime = tokenProperties.getRefreshTime();
         this.refreshTimeUnit = tokenProperties.getRefreshTimeUnit();
-        this.key = new SecretKeySpec(secret.getBytes(), SignatureAlgorithm.HS256.getJcaName());
         this.redisManager = redisManager;
     }
-
-
 
     private static final String TOKEN_CACHE_KEY = "token:login:";
     private static final String TOKEN_CLAIMS_ID_KEY = "tokenId";
     private static final String TOKEN_CLAIMS_USER_ID_KEY = "userId";
     private static final Pattern pattern = Pattern.compile("^(?:Bearer\\s)?(.+)$");
-
+    private static final String JWT_TOKEN_SUBJECT = "TokenLoginService";
 
     // Redis中存储所有活跃tokenId的集合key
     private static final String TOKEN_ACTIVE_SET = "token:activeTokens";
@@ -136,7 +132,6 @@ public class TokenLoginService implements AuthorizationService
         // 设置登录信息
         setUserLoginInfo(userVO, request);
 
-
         // 处理单点登录
         if (singleLogin)
         {
@@ -164,7 +159,7 @@ public class TokenLoginService implements AuthorizationService
         String token = extractToken(request);
         if (StringUtils.isNotEmpty(token))
         {
-            Map<String, Object> claims = parseToken(token);
+            Map<String, Object> claims = TokenUtils.parseToken(token);
             if (claims != null)
             {
                 String tokenId = (String) claims.get(TOKEN_CLAIMS_ID_KEY);
@@ -240,21 +235,17 @@ public class TokenLoginService implements AuthorizationService
             int totalTokens = tokenIdList.size();
             int fromIndex = (currentSize - 1) * size;
             int toIndex = Math.min(fromIndex + size, totalTokens);
-            if (fromIndex >= totalTokens)
-            {
+            if (fromIndex >= totalTokens) {
                 return userList; // 返回空列表
             }
             List<String> pagedTokenIds = tokenIdList.subList(fromIndex, toIndex);
 
-            for (String tokenId : pagedTokenIds)
-            {
+            for (String tokenId : pagedTokenIds) {
                 Optional<UserVO> userVOOptional = redisManager.getObject(getTokenCacheKey(tokenId), UserVO.class);
-                if (userVOOptional.isPresent())
-                {
+                if (userVOOptional.isPresent()) {
                     userList.add(userVOOptional.get());
                 }
-                else
-                {
+                else {
                     // 如果缓存中没有找到对应的 UserVO，可能是过期的 tokenId，需要移除
                     redisManager.removeFromSet(TOKEN_ACTIVE_SET, tokenId);
                 }
@@ -290,7 +281,6 @@ public class TokenLoginService implements AuthorizationService
 
     }
 
-
     private TokenInfo createToken(User user)
     {
         String tokenId = UUID.randomUUID().toString();
@@ -299,20 +289,15 @@ public class TokenLoginService implements AuthorizationService
         claims.put(TOKEN_CLAIMS_ID_KEY, tokenId);
         claims.put(TOKEN_CLAIMS_USER_ID_KEY, user.getId());
 
-        String token = createToken(claims);
+        String token = TokenUtils.createJWTToken(claims,
+                JWT_TOKEN_SUBJECT,
+                tokenId,
+                Duration.ofMillis(expireTimeUnit.toMillis(expireTime))
+        );
 
         return new TokenInfo(token, tokenId);
     }
 
-    private String createToken(Map<String, Object> claims)
-    {
-
-        return Jwts.builder()
-                   .setSubject("LoginToken")
-                   .signWith(key, SignatureAlgorithm.HS256)
-                   .setClaims(claims)
-                   .compact();
-    }
 
     private void refreshToken(UserVO userVO, String tokenId) {
         userVO.setLoginTime(System.currentTimeMillis());
@@ -323,9 +308,6 @@ public class TokenLoginService implements AuthorizationService
         redisManager.setObject(getTokenCacheKey(tokenId), userVO, expireTime, expireTimeUnit);
     }
 
-
-
-
     private String getTokenCacheKey(String tokenId)
     {
         return TOKEN_CACHE_KEY + tokenId;
@@ -333,7 +315,7 @@ public class TokenLoginService implements AuthorizationService
 
     private void checkExpireTime(UserVO userVO, String token) {
         try {
-            Map<String, Object> claims = parseToken(token);
+            Map<String, Object> claims = TokenUtils.parseToken(token);
             if (claims != null) {
                 String tokenId = (String) claims.get(TOKEN_CLAIMS_ID_KEY);
                 if (StringUtils.isNotEmpty(tokenId)) {
@@ -351,41 +333,11 @@ public class TokenLoginService implements AuthorizationService
         }
     }
 
-
-
-    private Map<String, Object> parseToken(String token)
-    {
-        try
-        {
-            return Jwts.parserBuilder()
-                       .setSigningKey(key)
-                       .build()
-                       .parseClaimsJws(token)
-                       .getBody();
-        }
-        catch (ExpiredJwtException e)
-        {
-            log.warn("Token已过期：{}", token);
-            throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "Token已过期");
-        }
-        catch (JwtException e)
-        {
-            log.warn("Token无效：{}", token);
-            throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "Token无效");
-        }
-        catch (Exception e)
-        {
-            log.error("Token解析异常：{}", e.getMessage(), e);
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "Token解析异常");
-        }
-    }
-
-
     private UserVO getUserVOFromCache(String token)
     {
         if (StringUtils.isNotEmpty(token))
         {
-            Map<String, Object> claims = parseToken(token);
+            Map<String, Object> claims = TokenUtils.parseToken(token);
             if (claims != null)
             {
                 String tokenId = (String) claims.get(TOKEN_CLAIMS_ID_KEY);

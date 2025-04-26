@@ -47,7 +47,7 @@ public enum RedisKeyEnum implements BaseCacheEnum
     /**
     * 无效短链接缓存，持续一天
     */
-    INVALID_SHORT_LINK("invalid_short_link", TimeUtils.getMills(1, TimeUnit.DAYS)),
+    INVALID_SHORT_LINK("invalid_short_link", TimeUtils.getMills(1L, TimeUnit.DAYS)),
 
     /**
      * 短链接统计判断是否新用户缓存标识

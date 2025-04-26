@@ -1,6 +1,7 @@
 package com.caixy.shortlink.manager.email.annotation;
 
-import com.caixy.shortlink.manager.email.models.EmailSenderEnum;
+import com.caixy.shortlink.manager.email.models.enums.EmailCaptchaBizEnum;
+import com.caixy.shortlink.manager.email.models.EmailTextBizEnum;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -18,5 +19,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface EmailSender
 {
-    EmailSenderEnum[] value();
+    EmailCaptchaBizEnum[] captcha() default {};
+    EmailTextBizEnum[] text() default {};
 }

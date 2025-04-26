@@ -9,7 +9,7 @@ import {useToast} from "@/hooks/use-toast"
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
 import {queryApiKey, refreshApiKey} from "@/api/apiInfoController";
 import {RsaUtil} from "@/lib/RsaUtil";
-import {ResultCode} from "@/constant/constant";
+import {ResultCode} from "@/enums/ResultCodeEnum";
 import useDebounce from "@/hooks/useDebounce";
 
 /**

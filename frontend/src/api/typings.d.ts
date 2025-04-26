@@ -207,17 +207,17 @@ declare namespace API {
   type IPageShortLinkStatsAccessRecordRespDTO = {
     size?: number;
     current?: number;
+    pages?: number;
     total?: number;
     records?: ShortLinkStatsAccessRecordRespDTO[];
-    pages?: number;
   };
 
   type IPageUserFeedbackInfoVO = {
     size?: number;
     current?: number;
+    pages?: number;
     total?: number;
     records?: UserFeedbackInfoVO[];
-    pages?: number;
   };
 
   type LinkAccessLogs = {
@@ -1232,12 +1232,6 @@ declare namespace API {
     message?: string;
   };
 
-  type ResultObject = {
-    code?: number;
-    data?: Record<string, any>;
-    message?: string;
-  };
-
   type ResultPageGroup = {
     code?: number;
     data?: PageGroup;
@@ -1392,12 +1386,6 @@ declare namespace API {
     code?: number;
     data?: UserVO;
     message?: string;
-  };
-
-  type SendEmailRequest = {
-    toEmail?: string;
-    scenes?: number;
-    extractParams?: Record<string, any>;
   };
 
   type ShortLinkGroupStatsAccessRecordReqDTO = {
@@ -1597,7 +1585,7 @@ declare namespace API {
   };
 
   type UserModifyPasswordRequest = {
-    captchaCode?: string;
+    captchaCode: string;
     newPassword?: string;
     confirmPassword?: string;
   };
@@ -1623,8 +1611,11 @@ declare namespace API {
   };
 
   type UserResetEmailRequest = {
-    code: string;
-    password: string;
+    originalEmail?: string;
+    newEmail?: string;
+    code?: string;
+    password?: string;
+    token?: string;
   };
 
   type UserUpdateProfileRequest = {

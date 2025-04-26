@@ -40,7 +40,7 @@ export type DateTableColumnProps<T> = {
     searchType?: DataTableFieldType
     searchRender?: (form: any, fieldProps: any) => ReactNode
     sorter?: boolean
-    toolTip?: string | ReactNode | React.JSX.Element
+    toolTip?: string | ReactNode | React.React.ReactNode
     enumMap?: Record<string, {
         text: string
         status?: BreathingDotStatus

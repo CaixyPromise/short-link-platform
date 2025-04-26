@@ -13,9 +13,9 @@ import {InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot} from "@/compon
 import {FormContainer} from "@/app/auth/components/form-container";
 import {useToast} from "@/hooks/use-toast";
 import {doActivateUser, getRegistrationInfoByParams} from "@/api/authController";
-import {ResultCode} from "@/constant/constant";
 import {FormStateEnum} from "@/app/auth/enums";
 import {useAppSelector} from "@/stores/hooks";
+import {ResultCode} from "@/enums/ResultCodeEnum";
 
 interface ActivateAccountInputs {
 	password: string;

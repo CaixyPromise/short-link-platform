@@ -1,6 +1,6 @@
 'use client'
 
-import React, {forwardRef, useImperativeHandle, useState} from 'react'
+import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react'
 import {Input} from "@/components/ui/input"
 import {CaptchaProps, CaptchaRef} from "@/components/Captcha/typing";
 import {ImageCaptchaProps} from "@/components/Captcha/captcha-image";
@@ -14,7 +14,7 @@ interface ExtendedCaptchaProps extends CaptchaProps {
 const Captcha = forwardRef<CaptchaRef, ExtendedCaptchaProps>(
 	({
 		 value,
-		 onValueChange,
+		 onChange,
 		 inputProps,
 		 placeholder = "请输入验证码",
 		 captchaId,
@@ -24,17 +24,19 @@ const Captcha = forwardRef<CaptchaRef, ExtendedCaptchaProps>(
 		 carrierClassName
 	 }, ref) => {
 		const [inputValue, setInputValue] = useState<string>(value || "")
+		const inputRef = useRef<HTMLInputElement | null>(null)
 
 		useImperativeHandle(ref, () => ({
 			getValue: () => inputValue,
 			getCaptchaId: () => captchaId,
-			refreshCaptcha
+			refreshCaptcha,
+			focus: () => inputRef?.current?.focus()
 		}))
 
 		const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 			const value = e.target.value
 			setInputValue(value)
-			onValueChange?.(value)
+			onChange?.(value)
 		}
 
 		return (

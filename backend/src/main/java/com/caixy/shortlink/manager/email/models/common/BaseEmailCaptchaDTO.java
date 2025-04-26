@@ -1,6 +1,5 @@
-package com.caixy.shortlink.manager.email.models.captcha;
+package com.caixy.shortlink.manager.email.models.common;
 
-import com.caixy.shortlink.manager.email.models.BaseEmailContentDTO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

@@ -11,9 +11,9 @@ import com.caixy.shortlink.constant.CommonConstant;
 import com.caixy.shortlink.constant.UserConstant;
 import com.caixy.shortlink.exception.BusinessException;
 import com.caixy.shortlink.exception.ThrowUtils;
-import com.caixy.shortlink.manager.email.models.EmailSenderEnum;
-import com.caixy.shortlink.manager.email.models.captcha.BaseEmailActiveUserDTO;
-import com.caixy.shortlink.manager.email.models.captcha.EmailCaptchaConstant;
+import com.caixy.shortlink.manager.email.models.captcha.CommonEmailCaptchaDTO;
+import com.caixy.shortlink.manager.email.models.enums.EmailCaptchaBizEnum;
+import com.caixy.shortlink.manager.email.models.captcha.EmailActiveUserDTO;
 import com.caixy.shortlink.manager.UploadManager.annotation.FileUploadActionTarget;
 import com.caixy.shortlink.manager.file.FileInfoHelper;
 import com.caixy.shortlink.manager.redis.RedisManager;
@@ -187,22 +187,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
         return password.toString();
     }
 
+    @Override
+    public void sendModifyPasswordIdentifyCode(UserVO userVO) {
+        User userInfo = getUserInfoByIdOrThrow(userVO.getId());
+        emailService.sendEmail(userInfo.getUserEmail(),
+                new CommonEmailCaptchaDTO("修改密码"),
+                EmailCaptchaBizEnum.RESET_PASSWORD);
+    }
+
 
     @Override
-    public Boolean modifyPassword(Long userId, UserModifyPasswordRequest userModifyPasswordRequest)
-    {
+    public Boolean modifyPassword(Long userId, UserModifyPasswordRequest userModifyPasswordRequest) {
         String userPassword = userModifyPasswordRequest.getNewPassword();
         validPassword(userPassword, userModifyPasswordRequest.getConfirmPassword());
 
         // 查询用户
         User currenUser = this.getById(userId);
-        if (currenUser == null)
-        {
+        if (currenUser == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "用户不存在");
         }
 
         // 校验邮箱验证码
-        verifyEmailCaptcha(userModifyPasswordRequest.getCaptchaCode(), currenUser.getUserEmail(), EmailSenderEnum.RESET_PASSWORD);
+        emailService.verifyCaptcha(EmailCaptchaBizEnum.RESET_PASSWORD, currenUser.getUserEmail(), userModifyPasswordRequest.getCaptchaCode());
 
         // 加密密码
         String encryptPassword = EncryptionUtils.encryptPassword(userPassword);
@@ -241,6 +247,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
         {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "性别参数错误");
         }
+    }
+
+    /**
+     * 根据用户id获取用户，不存在则抛出业务异常
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @version 2025/4/25 17:34
+     */
+    @Override
+    public User getUserInfoByIdOrThrow(Long userId) {
+        User user = this.getById(userId);
+        ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "用户不存在");
+        return user;
     }
 
     /**
@@ -309,44 +329,109 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
         return result;
     }
 
+    /**
+     * 提交修改邮箱请求-步骤1：检查原邮箱-发送源优享验证码
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @version 2025/4/25 3:00
+     */
     @Override
-    public Boolean resetEmail(Long id, UserResetEmailRequest userResetEmailRequest, HttpServletRequest request)
-    {
-        // 从Session内获取新的邮箱值
-        String newEmail = ServletUtils.getAttributeFromSession(EmailSenderEnum.RESET_EMAIL.getKey(), String.class).orElseThrow(() -> new BusinessException(ErrorCode.FORBIDDEN_ERROR, "无效请求"));
-        // 获取用户信息
-        User userInfo = getById(id);
-        if (userInfo == null)
-        {
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "用户不存在");
-        }
-        // 检查新旧邮箱是否一致
-        if (Objects.equals(userInfo.getUserEmail(), newEmail))
-        {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "新旧邮箱不能一致");
-        }
-        // 检查用户密码是否正确
-        boolean matchPassword = EncryptionUtils.matchPassword(userResetEmailRequest.getPassword(), userInfo.getUserPassword());
-        if (!matchPassword)
-        {
+    public void submitModifyEmailCheckOriginEmail(UserVO loginInfo, String originEmail) {
+        User userInfo = getUserInfoByIdOrThrow(loginInfo.getId());
+        String userEmail = userInfo.getUserEmail();
+        ThrowUtils.throwIf(!userEmail.equals(originEmail), ErrorCode.PARAMS_ERROR, "原邮箱错误");
+        emailService.sendEmail(userInfo.getUserEmail(), new CommonEmailCaptchaDTO("修改绑定邮箱-校验原邮箱"), EmailCaptchaBizEnum.RESET_EMAIL);
+    }
+
+
+    /**
+     * 提交修改邮箱请求-步骤2-检查密码和步骤1验证码
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @version 2025/4/25 17:30
+     */
+    @Override
+    public String submitModifyEmailCheckPasswordAndCode(UserVO loginUser, String password, String code) {
+        User user = getUserInfoByIdOrThrow(loginUser.getId());
+        String userEmail = user.getUserEmail();
+        emailService.verifyCaptcha(EmailCaptchaBizEnum.RESET_EMAIL, userEmail, code);
+        boolean matchPassword = EncryptionUtils.matchPassword(password, user.getUserPassword());
+        if (!matchPassword) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误");
         }
+        // 生成一个token安全token给前端。后面需要都带上这个token来保持
+        Map<String, Object> modifyPasswordInfoMap = new HashMap<>();
+        modifyPasswordInfoMap.put("userEmail", userEmail);
+        // 后续操作，如果Ip不对则返回错误
+        String operatorIp = ServletUtils.getRemoteIp();
+        if (!operatorIp.equals(loginUser.getLoginIp())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "非法操作");
+        }
+        // 生成token
+        String token = TokenUtils.createMD5TokenWithSalt(userEmail, operatorIp, loginUser.getId().toString());
+        modifyPasswordInfoMap.put("operatorIp", operatorIp);
+        redisManager.setHashMap(EmailCaptchaBizEnum.RESET_EMAIL, modifyPasswordInfoMap, token);
+        return token;
+    }
+
+    @Override
+    public void submitModifyEmailSendCodeToNewEmail(UserVO loginUser, String token, String newEmail) {
+        // 校验token
+        Map<String, Object> typedMap = redisManager.getHashMap(EmailCaptchaBizEnum.RESET_EMAIL, token);
+        if (typedMap == null) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "无效请求");
+        }
+        String userEmail = (String) typedMap.get("userEmail");
+        String operatorIp = (String) typedMap.get("operatorIp");
+        if (!operatorIp.equals(loginUser.getLoginIp())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "非法操作");
+        }
+        // 检查邮箱
+        if (userEmail.equals(newEmail)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "新旧邮箱不能一致");
+        }
+        // 校验邮箱是否已被使用
+        boolean emailExist = emailExist(newEmail);
+        if (emailExist) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "邮箱已被绑定");
+        }
+        typedMap.put("newEmail", newEmail);
+        // 发送新邮箱的验证码邮件
+        emailService.sendEmail(newEmail, new CommonEmailCaptchaDTO("修改绑定邮箱-校验新邮箱"), EmailCaptchaBizEnum.RESET_EMAIL);
+        // 将新邮箱写入缓存，后续只依赖这个
+        redisManager.setHashMap(EmailCaptchaBizEnum.RESET_EMAIL, typedMap, token);
+    }
+
+    @Override
+    public Boolean modifyEmail(Long id, String token, String code)
+    {
+        // 从redis内提取信息
+        Map<String, Object> typedMap = redisManager.getHashMap(EmailCaptchaBizEnum.RESET_EMAIL, token);
+        if (typedMap == null) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "无效请求");
+        }
+        String newEmail = (String) typedMap.get("newEmail");
+        String operatorIp = (String) typedMap.get("operatorIp");
+        if (!operatorIp.equals(ServletUtils.getRemoteIp())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "非法操作");
+        }
+        // 获取用户信息
+        User userInfo = getUserInfoByIdOrThrow(id);
         // 校验邮箱验证码
-        verifyEmailCaptcha(userResetEmailRequest.getCode(), newEmail, EmailSenderEnum.RESET_EMAIL);
+        emailService.verifyCaptcha(EmailCaptchaBizEnum.RESET_EMAIL, newEmail, code);
         // 更新邮箱
         userInfo.setUserEmail(newEmail);
         boolean updated = this.updateById(userInfo);
-        if (updated)
-        {
-            // 删除缓存
-            redisManager.delete(EmailSenderEnum.RESET_EMAIL, newEmail);
-            // 清除登录状态-需要重新登录
-            ServletUtils.removeAttributeInSession(UserConstant.USER_LOGIN_STATE);
-            // 清除验证码签名
-            ServletUtils.removeAttributeInSession(EmailSenderEnum.RESET_EMAIL.getKey());
-            return true;
+        if (!updated) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "修改失败");
         }
-        return false;
+        // 删除缓存
+        redisManager.delete(EmailCaptchaBizEnum.RESET_EMAIL, newEmail);
+        // 清除登录状态-需要重新登录
+        ServletUtils.removeAttributeInSession(UserConstant.USER_LOGIN_STATE);
+        return true;
     }
 
     /**
@@ -363,10 +448,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
         String email = userRegisterRequest.getUserEmail();
         if (StringUtils.isAnyBlank(userName, email)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
-        }
-        boolean validUserEmail = RegexUtils.isEmail(email);
-        if (!validUserEmail) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "邮箱格式错误");
         }
         boolean validatedUserName = RegexUtils.validatedUserName(userName);
         if (!validatedUserName) {
@@ -393,10 +474,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
             HashMap<String, Object> cacheMap = new HashMap<>();
             cacheMap.put("userEmail", email);
             cacheMap.put("userName", userName);
-            redisManager.setHashMap(RedisKeyEnum.ACTIVE_USER, cacheMap, accessToken);
-            BaseEmailActiveUserDTO activeUserDTO = new BaseEmailActiveUserDTO();
+            EmailActiveUserDTO activeUserDTO = new EmailActiveUserDTO();
             activeUserDTO.setToken(accessToken);
-            emailService.sendCaptchaEmail(email, activeUserDTO, EmailSenderEnum.ACTIVE_USER);
+            // 先发邮件再写缓存，尽量避免提前过期，而且sendEmail里还会多做校验邮箱合法性操作。
+            emailService.sendEmail(email, activeUserDTO, EmailCaptchaBizEnum.ACTIVE_USER);
+            redisManager.setHashMap(RedisKeyEnum.ACTIVE_USER, cacheMap, accessToken);
         }
         return true;
     }
@@ -429,7 +511,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
             throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "无效请求或激活过期");
         }
         // 验证邮箱验证码
-        verifyEmailCaptcha(code, email, EmailSenderEnum.ACTIVE_USER);
+        emailService.verifyCaptcha(EmailCaptchaBizEnum.ACTIVE_USER, email, code);
         // 校验密码安全性
         String password = userActivationRequest.getPassword();
         String confirmPassword = userActivationRequest.getConfirmPassword();
@@ -484,28 +566,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
         return false;
     }
 
-
-    private void verifyEmailCaptcha(String code, String toEmail, EmailSenderEnum senderEnum)
-    {
-        // 从缓存获取信息
-        HashMap<String, Object> captchaInCache = redisManager.getHashMap(senderEnum, toEmail);
-        if (captchaInCache == null || captchaInCache.isEmpty())
-        {
-            throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "无效请求");
-        }
-        String captcha = MapUtils.safetyGetValueByKey(captchaInCache, EmailCaptchaConstant.CACHE_KEY_CODE, String.class);
-
-        if (StringUtils.isBlank(captcha))
-        {
-            throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "无效请求");
-        }
-
-        // 验证码验证
-        if (!captcha.equals(code))
-        {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "验证码错误");
-        }
-    }
 
     private String generateNickName(String email)
     {

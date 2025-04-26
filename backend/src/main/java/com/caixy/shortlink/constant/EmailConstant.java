@@ -10,10 +10,6 @@ package com.caixy.shortlink.constant;
 public interface EmailConstant
 {
 
-    /**
-     * 电子邮件html内容路径 resources目录下
-     */
-    String EMAIL_HTML_CONTENT_PATH = "email-template/captcha.html.ftl";
 
     /**
      * 电子邮件html支付成功路径
