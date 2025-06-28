@@ -6,8 +6,10 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 文件信息表
@@ -15,6 +17,8 @@ import lombok.Data;
  */
 @TableName(value ="t_file_info")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class FileInfo implements Serializable {
     /**
