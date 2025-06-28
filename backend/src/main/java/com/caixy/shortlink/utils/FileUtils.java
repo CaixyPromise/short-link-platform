@@ -1,23 +1,91 @@
-package com.caixy.shortlink.manager.UploadManager.utils;
+package com.caixy.shortlink.utils;
 
+import cn.hutool.crypto.digest.HMac;
+import cn.hutool.crypto.digest.HmacAlgorithm;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
- * 文件操作根据类
+ * 文件工具类
  *
- * @author CAIXYPROMISE
- * @name com.caixy.shortlink.manager.UploadManager.utils.FileUtils
- * @since 2024-06-11 17:32
- **/
-public class FileUtils
+ * @Author CAIXYPROMISE
+ * @since 2025/5/26 19:53
+ */
+public class FileUtils extends cn.hutool.core.io.FileUtil
 {
+    // 最大文件名长度
+    private static final int MAX_FILE_NAME_LENGTH = 100;
+
+    private static final Pattern SANITIZE_PATTERN  = Pattern.compile("[\\\\/:*?\"<>|]");
+
+    /**
+     * 计算 HMAC-SHA256 文件签名
+     * @param fileBytes 文件字节流
+     * @param salt salt 作为 HMAC key
+     * @return 十六进制字符串签名
+     * @throws Exception
+     */
+    public static String hmacSha256File(byte[] fileBytes, String salt) throws IOException
+    {
+        HMac hMac = new HMac(HmacAlgorithm.HmacSHA256, salt.getBytes());
+        return hMac.digestHex(fileBytes);
+    }
+
+    /**
+     * 文件名安全化（替换非法字符）
+     */
+    public static String sanitizeFileName(String fileName) {
+        if (fileName == null) {
+            return null;
+        }
+        return SANITIZE_PATTERN.matcher(fileName).replaceAll("_");
+    }
+    /**
+     * 文件名脱敏：MD5 哈希化 + 安全化 + 长度限制
+     */
+    public static String desensitizeFileName(String originalFileName)
+    {
+        if (StringUtils.isBlank(originalFileName))
+        {
+            throw new IllegalArgumentException("文件名不能为空");
+        }
+        String uuid = UUID.randomUUID().toString();
+
+        // 提取文件扩展名
+        int dotIndex = originalFileName.lastIndexOf(".");
+        String extension = "";
+        if (dotIndex != -1)
+        {
+            extension = originalFileName.substring(dotIndex);
+            originalFileName = originalFileName.substring(0, dotIndex);
+        }
+
+        // 安全化文件名
+        String safeFileName = uuid + sanitizeFileName(originalFileName);
+
+        // 哈希处理
+        String hashPart = DigestUtils.md5Hex(safeFileName.getBytes(StandardCharsets.UTF_8));
+
+        // 计算允许的哈希长度
+        int allowedLength = MAX_FILE_NAME_LENGTH - extension.length();
+        if (hashPart.length() > allowedLength)
+        {
+            hashPart = hashPart.substring(0, allowedLength);
+        }
+
+        return hashPart + extension;
+    }
+
     /**
      * 获取文件的SHA-256哈希值
      *

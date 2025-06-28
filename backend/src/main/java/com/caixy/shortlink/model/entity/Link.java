@@ -11,6 +11,7 @@ import java.util.Date;
 
 import com.caixy.shortlink.common.BaseEntity;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
  * 短链接信息表
@@ -21,7 +22,7 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder(toBuilder = true)
 public class Link extends BaseEntity implements Serializable {
     /**
      * 域名

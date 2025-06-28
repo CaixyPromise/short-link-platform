@@ -2,6 +2,8 @@ package com.caixy.shortlink.model.enums;
 
 import com.caixy.shortlink.constant.FileTypeConstant;
 import com.caixy.shortlink.utils.SizeUtils;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -25,7 +27,7 @@ public enum FileActionBizEnum
             0,
             SizeUtils.of(2, SizeUtils.SizeType.MB),
             new HashSet<>(Arrays.asList("jpeg", "jpg", "svg", "png", "webp")),
-            SaveFileMethodEnum.LOCAL_SAVE)
+            SaveFileMethodEnum.SAVE_LOCAL)
     ;
     /**
      * 用途说明
@@ -61,6 +63,21 @@ public enum FileActionBizEnum
      * 文件保存方式
      */
     private final SaveFileMethodEnum saveFileMethod;
+
+    @JsonValue
+    public Integer getValue() {
+        return value;
+    }
+
+    @JsonCreator
+    public static FileActionBizEnum fromJson(Integer value) {
+        FileActionBizEnum enumByValue = getEnumByValue(value);
+        if (enumByValue == null) {
+            throw new IllegalArgumentException("Invalid value: " + value);
+        }
+        return enumByValue;
+    }
+
 
     FileActionBizEnum(String text,
                       String routePath,
@@ -113,7 +130,6 @@ public enum FileActionBizEnum
     public Path buildFileAbsolutePathAndName(Long userId, String fileName)
     {
         // /{value}/{userId}/{fileName}
-        // 格式：/attachment/12345/8d2f03a7-md5hash12345
         return Paths.get(label, userId.toString(), fileName);
     }
 

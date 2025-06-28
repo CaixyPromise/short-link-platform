@@ -1,5 +1,7 @@
 package com.caixy.shortlink.manager.file.strategy;
 
+import com.caixy.shortlink.manager.file.FileActionHelper;
+import com.caixy.shortlink.manager.file.domain.UploadContext;
 import com.caixy.shortlink.model.dto.file.*;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,8 +23,12 @@ public interface FileActionStrategy
      * @version 1.0
      * @since 2024/6/10 下午11:51
      */
-    FileUploadAfterActionResult doAfterUploadAction(UploadFileDTO uploadFileDTO, Path savePath, UploadFileRequest uploadFileRequest,
-                                                    HttpServletRequest request) throws IOException;
+    FileUploadAfterActionResult doAfterUploadAction(
+            UploadContext uploadContext,
+            FileActionHelper fileActionHelper,
+            Path savePath,
+            UploadFileRequest uploadFileRequest,
+            HttpServletRequest request);
 
     /**
      * 文件上传前处理操作
@@ -31,8 +37,11 @@ public interface FileActionStrategy
      * @version 1.0
      * @since 2024/6/10 下午11:51
      */
-    default FileUploadBeforeActionResult doBeforeUploadAction(UploadFileDTO uploadFileDTO
-            , UploadFileRequest uploadFileRequest)
+    default FileUploadBeforeActionResult doBeforeUploadAction(
+            UploadContext uploadContext,
+            FileActionHelper fileActionHelper,
+            UploadFileRequest uploadFileRequest,
+            HttpServletRequest request)
     {
         return FileUploadBeforeActionResult.success();
     }

@@ -11,6 +11,7 @@ import java.util.Date;
 
 import com.caixy.shortlink.common.BaseEntity;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
  * 用户
@@ -19,7 +20,7 @@ import lombok.*;
 @EqualsAndHashCode(callSuper = true)
 @TableName(value ="t_user")
 @Data
-@Builder
+@SuperBuilder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class User extends BaseEntity implements Serializable {

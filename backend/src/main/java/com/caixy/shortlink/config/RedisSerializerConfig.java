@@ -17,15 +17,18 @@ import org.springframework.stereotype.Component;
 public class RedisSerializerConfig
 {
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory)
-    {
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
-        // 使用自定义的 GsonRedisSerializer
-        GsonRedisSerializer<Object> serializer = new GsonRedisSerializer<>(Object.class);
-        template.setValueSerializer(serializer);
-        template.setHashValueSerializer(serializer);
+        template.setHashKeySerializer(new StringRedisSerializer());
+//        GsonRedisSerializer<Object> serializer = new GsonRedisSerializer<>(Object.class);
+//        template.setValueSerializer(serializer);
+//        template.setHashValueSerializer(serializer);
+        JacksonRedisSerializer<Object> jacksonRedisSerializer = new JacksonRedisSerializer<>(Object.class);
+        template.setValueSerializer(jacksonRedisSerializer);
+        template.setHashValueSerializer(jacksonRedisSerializer);
+        template.afterPropertiesSet();
         return template;
     }
 }

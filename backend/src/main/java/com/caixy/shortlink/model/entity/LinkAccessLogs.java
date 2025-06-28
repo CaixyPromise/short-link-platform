@@ -9,6 +9,7 @@ import java.util.Date;
 
 import com.caixy.shortlink.common.BaseEntity;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
  * 短链接访问日志表
@@ -17,7 +18,7 @@ import lombok.*;
 @EqualsAndHashCode(callSuper = true)
 @TableName(value ="t_link_access_logs")
 @Data
-@Builder
+@SuperBuilder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class LinkAccessLogs extends BaseEntity {

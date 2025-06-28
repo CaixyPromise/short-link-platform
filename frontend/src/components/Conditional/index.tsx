@@ -170,6 +170,13 @@ const Conditional = <T,>({ value, children, clientOnly, strict = false }: Condit
 
         React.Children.forEach(children, (child, index) => {
             if (!isValidElement(child)) {
+                if (
+                  child !== null &&
+                  child !== undefined &&
+                  typeof child !== 'boolean'
+                ) {
+                    output.push(child);
+                }
                 return;
             }
 
@@ -234,6 +241,11 @@ const Conditional = <T,>({ value, children, clientOnly, strict = false }: Condit
                 }
 
                 default:
+                    // 如果是嵌套的 <Conditional …>，交给它自己去解析
+                    if (type === Conditional || (type as React.FunctionComponent).displayName === 'Conditional') {
+                        output.push(child);
+                        break;
+                    }
                     const inner = processChildren(props.children)
 
                     // 如果内部有 Condition.* 被解析到，返回处理后的 clone；
@@ -350,5 +362,5 @@ const Conditional = <T,>({ value, children, clientOnly, strict = false }: Condit
         </ConditionalContext.Provider>
     );
 };
-
+Conditional.displayName = 'Conditional';
 export { Conditional, Condition };

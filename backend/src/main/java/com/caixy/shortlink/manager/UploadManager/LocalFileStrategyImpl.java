@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -31,7 +32,7 @@ import java.nio.file.Paths;
 @Component
 @AllArgsConstructor
 @Slf4j
-@UploadMethodTarget(SaveFileMethodEnum.LOCAL_SAVE)
+@UploadMethodTarget(SaveFileMethodEnum.SAVE_LOCAL)
 public class LocalFileStrategyImpl implements UploadFileMethodStrategy
 {
     private final LocalFileConfig localFileConfig;
@@ -91,8 +92,15 @@ public class LocalFileStrategyImpl implements UploadFileMethodStrategy
         }
     }
 
+    /**
+     * 乐观删除
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @version 2025/6/23 11:02
+     */
     @Override
-    public Boolean deleteFileAllowFail(Path key)
+    public Boolean deleteFileWithTolerance(Path key)
     {
         try
         {
@@ -111,8 +119,34 @@ public class LocalFileStrategyImpl implements UploadFileMethodStrategy
     {
         Path finalPath = localFileConfig.getRootLocation().resolve(key);
         File file = finalPath.toFile();
+        if (!file.exists()) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "文件不存在");
+        }
         return new FileSystemResource(file);
     }
+
+    @Override
+    public byte[] readSlice(Path key, long offset, int length) throws IOException {
+        Path finalPath = localFileConfig.getRootLocation().resolve(key);
+        File file = finalPath.toFile();
+        if (!file.exists()) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "文件不存在");
+        }
+
+        try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
+            long fileSize = raf.length();
+            // 调整 length，防止越界
+            int sliceLen = (int) Math.min(length, fileSize - offset);
+            if (sliceLen <= 0) {
+                return new byte[0];
+            }
+            byte[] buffer = new byte[sliceLen];
+            raf.seek(offset);
+            raf.readFully(buffer);
+            return buffer;
+        }
+    }
+
 
 
     @Override

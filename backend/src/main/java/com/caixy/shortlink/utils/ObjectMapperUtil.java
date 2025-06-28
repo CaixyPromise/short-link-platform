@@ -2,9 +2,12 @@ package com.caixy.shortlink.utils;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.MapType;
 import org.apache.poi.ss.formula.functions.T;
+
+import java.util.Map;
 
 
 /**
@@ -60,5 +63,36 @@ public class ObjectMapperUtil
     public static <T> T convertValue(Object source, MapType valueType)
     {
         return baseHandler(() -> objectMapper.convertValue(source, valueType));
+    }
+
+    /**
+     * 将对象转换为 Map<K,V> 结构
+     *
+     * @param source     源对象
+     * @param keyType    Map Key 类型
+     * @param valueType  Map Value 类型
+     * @param <K>        Key 泛型
+     * @param <V>        Value 泛型
+     * @return Map<K,V> 结果
+     */
+    public static <K, V> Map<K, V> convertToMap(Object source, Class<K> keyType, Class<V> valueType)
+    {
+        return baseHandler(() ->
+        {
+            JavaType mapType = objectMapper.getTypeFactory().constructMapType(Map.class, keyType, valueType);
+            return objectMapper.convertValue(source, mapType);
+        });
+    }
+    /**
+     * 将 Map<K,V> 结构转换为指定类型的 Java 对象
+     *
+     * @param map        源 Map
+     * @param targetType 目标类型
+     * @param <T>        目标对象泛型
+     * @return 目标对象
+     */
+    public static <T> T convertFromMap(Map<?, ?> map, Class<T> targetType)
+    {
+        return baseHandler(() -> objectMapper.convertValue(map, targetType));
     }
 }

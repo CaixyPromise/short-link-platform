@@ -21,6 +21,7 @@ public enum FileAccessLevelEnum
     private final Integer code;
     private final String label;
 
+    // 根据code获取FileAccessLevelEnum
     public FileAccessLevelEnum getByCode(Integer code) {
         if (code == null) {
             return null;

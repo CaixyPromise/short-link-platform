@@ -15,7 +15,8 @@ import com.caixy.shortlink.manager.email.models.captcha.CommonEmailCaptchaDTO;
 import com.caixy.shortlink.manager.email.models.enums.EmailCaptchaBizEnum;
 import com.caixy.shortlink.manager.email.models.captcha.EmailActiveUserDTO;
 import com.caixy.shortlink.manager.UploadManager.annotation.FileUploadActionTarget;
-import com.caixy.shortlink.manager.file.FileInfoHelper;
+import com.caixy.shortlink.manager.file.FileActionHelper;
+import com.caixy.shortlink.manager.file.domain.UploadContext;
 import com.caixy.shortlink.manager.redis.RedisManager;
 import com.caixy.shortlink.mapper.UserMapper;
 import com.caixy.shortlink.model.convertor.user.UserConvertor;
@@ -23,6 +24,7 @@ import com.caixy.shortlink.model.dto.file.FileUploadAfterActionResult;
 import com.caixy.shortlink.model.dto.file.UploadFileDTO;
 import com.caixy.shortlink.model.dto.file.UploadFileRequest;
 import com.caixy.shortlink.model.dto.user.*;
+import com.caixy.shortlink.model.entity.FileInfo;
 import com.caixy.shortlink.model.entity.FileReference;
 import com.caixy.shortlink.model.entity.User;
 import com.caixy.shortlink.model.enums.*;
@@ -58,7 +60,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @FileUploadActionTarget(FileActionBizEnum.USER_AVATAR)
 @RequiredArgsConstructor
-public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements InitializingBean, UserService, FileActionStrategy
+public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements InitializingBean, UserService,
+        FileActionStrategy
 {
     private static final UserConvertor userConvertor = UserConvertor.INSTANCE;
     private final RedisManager redisManager;
@@ -67,8 +70,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
     private RBloomFilter<String> nickNameBloomFilter;
     private RBloomFilter<String> emailBloomFilter;
     private final ApiKeyService apiKeyService;
-    private static final  String DEFAULT_NICK_NAME_PREFIX = "用户";
-    private static final  String DEFAULT_SEPARATOR = "-";
+    private static final String DEFAULT_NICK_NAME_PREFIX = "用户";
+    private static final String DEFAULT_SEPARATOR = "-";
     private static final String DEFAULT_AVATAR = "https://api.dicebear.com/7.x/identicon/svg?seed=%s";
     private static final String DEFAULT_USER_PROFILE = "这个用户很懒，什么都没写。";
 
@@ -116,7 +119,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
         queryWrapper.eq(StringUtils.isNotBlank(userRole), "userRole", userRole);
         queryWrapper.like(StringUtils.isNotBlank(userProfile), "userProfile", userProfile);
         queryWrapper.like(StringUtils.isNotBlank(userName), "userName", userName);
-        queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC), sortField);
+        queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
+                             sortField);
         return queryWrapper;
     }
 
@@ -125,7 +129,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
     @Override
     public Long doRegister(User user)
     {
-        synchronized (user.getUserEmail().intern()) {
+        synchronized (user.getUserEmail().intern())
+        {
             // 生成用户名
             String nickName = generateNickName(user.getUserEmail());
             user.setNickName(nickName);
@@ -188,27 +193,30 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
     }
 
     @Override
-    public void sendModifyPasswordIdentifyCode(UserVO userVO) {
+    public void sendModifyPasswordIdentifyCode(UserVO userVO)
+    {
         User userInfo = getUserInfoByIdOrThrow(userVO.getId());
-        emailService.sendEmail(userInfo.getUserEmail(),
-                new CommonEmailCaptchaDTO("修改密码"),
-                EmailCaptchaBizEnum.RESET_PASSWORD);
+        emailService.sendEmail(userInfo.getUserEmail(), new CommonEmailCaptchaDTO("修改密码"),
+                               EmailCaptchaBizEnum.RESET_PASSWORD);
     }
 
 
     @Override
-    public Boolean modifyPassword(Long userId, UserModifyPasswordRequest userModifyPasswordRequest) {
+    public Boolean modifyPassword(Long userId, UserModifyPasswordRequest userModifyPasswordRequest)
+    {
         String userPassword = userModifyPasswordRequest.getNewPassword();
         validPassword(userPassword, userModifyPasswordRequest.getConfirmPassword());
 
         // 查询用户
         User currenUser = this.getById(userId);
-        if (currenUser == null) {
+        if (currenUser == null)
+        {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "用户不存在");
         }
 
         // 校验邮箱验证码
-        emailService.verifyCaptcha(EmailCaptchaBizEnum.RESET_PASSWORD, currenUser.getUserEmail(), userModifyPasswordRequest.getCaptchaCode());
+        emailService.verifyCaptcha(EmailCaptchaBizEnum.RESET_PASSWORD, currenUser.getUserEmail(),
+                                   userModifyPasswordRequest.getCaptchaCode());
 
         // 加密密码
         String encryptPassword = EncryptionUtils.encryptPassword(userPassword);
@@ -257,7 +265,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
      * @version 2025/4/25 17:34
      */
     @Override
-    public User getUserInfoByIdOrThrow(Long userId) {
+    public User getUserInfoByIdOrThrow(Long userId)
+    {
         User user = this.getById(userId);
         ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "用户不存在");
         return user;
@@ -271,45 +280,41 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
      * @since 2024/6/7 下午4:31
      */
     @Override
-    public FileUploadAfterActionResult doAfterUploadAction(UploadFileDTO uploadFileDTO, Path savePath, UploadFileRequest uploadFileRequest, HttpServletRequest request) throws IOException
+    @Transactional(rollbackFor = Exception.class)
+    public FileUploadAfterActionResult doAfterUploadAction(UploadContext uploadContext, FileActionHelper helper,
+                                                           Path savePath, UploadFileRequest req,
+                                                           HttpServletRequest servletReq)
     {
-        Long userId = uploadFileDTO.getUserId();
+        UploadFileDTO dto = uploadContext.getUploadFileDTO();
+        Long userId = dto.getUserId();
         User user = this.getById(userId);
-        if (user == null)
-        {
-            return FileUploadAfterActionResult.fail();
-        }
-        String newUrl = uploadFileDTO.getFileSaveInfo().getFileURL();
-        if (user.getUserAvatar() != null && user.getUserAvatar().equals(newUrl)) {
-            // 是同一张图，无需更新
-            return FileUploadAfterActionResult.success();
+        ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR, "更新用户不存在");
+        String newUrl = dto.getFileSaveInfo().getFileURL();
+        if (StringUtils.isBlank(newUrl)) {
+            log.error("更新用户头像失败, 访问链接失败, 用户Id: {}, 新头像链接: {}, 上传", user.getId(), newUrl);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "文件上传失败");
         }
 
-        // 更新用户头像地址
-        user.setUserAvatar(uploadFileDTO.getFileSaveInfo().getFileURL());
-        FileInfoHelper fileInfoHelper = uploadFileDTO.getFileInfoHelper();
+        return buildAvatarUpdateResult(user, newUrl, servletReq);
+    }
+
+    private FileUploadAfterActionResult buildAvatarUpdateResult(User user, String newUrl, HttpServletRequest request)
+    {
+        // 更新用户头像信息
+        user.setUserAvatar(newUrl);
         boolean updated = this.updateById(user);
         if (!updated) {
-            return FileUploadAfterActionResult.fail();
+            log.error("更新用户头像链接失败, 用户Id: {}, 新头像链接: {}", user.getId(), newUrl);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "更新用户头像失败");
         }
-        // 删除旧头像
-        FileActionBizEnum uploadBizEnum = uploadFileDTO.getFileActionBizEnum();
-
-        List<FileReference> fileReferences = fileInfoHelper.listFileByBiz(userId, uploadBizEnum.getLabel(), userId);
-        if (!fileReferences.isEmpty()) {
-            Boolean removed = fileInfoHelper.removeFile(fileReferences.getFirst().getFileId(), userId, uploadBizEnum.getLabel(), userId);
-            if (!removed) {
-                log.info("删除旧头像引用失败，file_Id: {}, 用户Id: {}", fileReferences.getFirst().getFileId(), userId);
-            }
-        }
+        // 更新session内的头像信息
         setUserInfoInSession(user, request);
-
-        FileUploadAfterActionResult actionResult = FileUploadAfterActionResult.success();
-        actionResult.setAccessLevelEnum(FileAccessLevelEnum.PUBLIC);
-        actionResult.setBizId(userId);
-        actionResult.setDisplayName(String.format("avatar_%s", userId));
-        return actionResult;
+        // 设置操作返回结果
+        return FileUploadAfterActionResult.successBuilder().visitUrl(newUrl).bizId(user.getId())
+                                          .accessLevelEnum(FileAccessLevelEnum.PUBLIC)
+                                          .displayName(String.format("avatar_%s", user.getId())).build();
     }
+
 
     /**
      * 更新用户信息，同时更新Session内的信息
@@ -337,11 +342,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
      * @version 2025/4/25 3:00
      */
     @Override
-    public void submitModifyEmailCheckOriginEmail(UserVO loginInfo, String originEmail) {
+    public void submitModifyEmailCheckOriginEmail(UserVO loginInfo, String originEmail)
+    {
         User userInfo = getUserInfoByIdOrThrow(loginInfo.getId());
         String userEmail = userInfo.getUserEmail();
         ThrowUtils.throwIf(!userEmail.equals(originEmail), ErrorCode.PARAMS_ERROR, "原邮箱错误");
-        emailService.sendEmail(userInfo.getUserEmail(), new CommonEmailCaptchaDTO("修改绑定邮箱-校验原邮箱"), EmailCaptchaBizEnum.RESET_EMAIL);
+        emailService.sendEmail(userInfo.getUserEmail(), new CommonEmailCaptchaDTO("修改绑定邮箱-校验原邮箱"),
+                               EmailCaptchaBizEnum.RESET_EMAIL);
     }
 
 
@@ -353,12 +360,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
      * @version 2025/4/25 17:30
      */
     @Override
-    public String submitModifyEmailCheckPasswordAndCode(UserVO loginUser, String password, String code) {
+    public String submitModifyEmailCheckPasswordAndCode(UserVO loginUser, String password, String code)
+    {
         User user = getUserInfoByIdOrThrow(loginUser.getId());
         String userEmail = user.getUserEmail();
         emailService.verifyCaptcha(EmailCaptchaBizEnum.RESET_EMAIL, userEmail, code);
         boolean matchPassword = EncryptionUtils.matchPassword(password, user.getUserPassword());
-        if (!matchPassword) {
+        if (!matchPassword)
+        {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误");
         }
         // 生成一个token安全token给前端。后面需要都带上这个token来保持
@@ -366,7 +375,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
         modifyPasswordInfoMap.put("userEmail", userEmail);
         // 后续操作，如果Ip不对则返回错误
         String operatorIp = ServletUtils.getRemoteIp();
-        if (!operatorIp.equals(loginUser.getLoginIp())) {
+        if (!operatorIp.equals(loginUser.getLoginIp()))
+        {
             throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "非法操作");
         }
         // 生成token
@@ -377,24 +387,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
     }
 
     @Override
-    public void submitModifyEmailSendCodeToNewEmail(UserVO loginUser, String token, String newEmail) {
+    public void submitModifyEmailSendCodeToNewEmail(UserVO loginUser, String token, String newEmail)
+    {
         // 校验token
         Map<String, Object> typedMap = redisManager.getHashMap(EmailCaptchaBizEnum.RESET_EMAIL, token);
-        if (typedMap == null) {
+        if (typedMap == null)
+        {
             throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "无效请求");
         }
         String userEmail = (String) typedMap.get("userEmail");
         String operatorIp = (String) typedMap.get("operatorIp");
-        if (!operatorIp.equals(loginUser.getLoginIp())) {
+        if (!operatorIp.equals(loginUser.getLoginIp()))
+        {
             throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "非法操作");
         }
         // 检查邮箱
-        if (userEmail.equals(newEmail)) {
+        if (userEmail.equals(newEmail))
+        {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "新旧邮箱不能一致");
         }
         // 校验邮箱是否已被使用
         boolean emailExist = emailExist(newEmail);
-        if (emailExist) {
+        if (emailExist)
+        {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "邮箱已被绑定");
         }
         typedMap.put("newEmail", newEmail);
@@ -409,12 +424,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
     {
         // 从redis内提取信息
         Map<String, Object> typedMap = redisManager.getHashMap(EmailCaptchaBizEnum.RESET_EMAIL, token);
-        if (typedMap == null) {
+        if (typedMap == null)
+        {
             throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "无效请求");
         }
         String newEmail = (String) typedMap.get("newEmail");
         String operatorIp = (String) typedMap.get("operatorIp");
-        if (!operatorIp.equals(ServletUtils.getRemoteIp())) {
+        if (!operatorIp.equals(ServletUtils.getRemoteIp()))
+        {
             throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "非法操作");
         }
         // 获取用户信息
@@ -424,7 +441,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
         // 更新邮箱
         userInfo.setUserEmail(newEmail);
         boolean updated = this.updateById(userInfo);
-        if (!updated) {
+        if (!updated)
+        {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "修改失败");
         }
         // 删除缓存
@@ -446,18 +464,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
     {
         String userName = userRegisterRequest.getUserName();
         String email = userRegisterRequest.getUserEmail();
-        if (StringUtils.isAnyBlank(userName, email)) {
+        if (StringUtils.isAnyBlank(userName, email))
+        {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
         boolean validatedUserName = RegexUtils.validatedUserName(userName);
-        if (!validatedUserName) {
+        if (!validatedUserName)
+        {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "昵称格式错误，只能包含中文字符和英文大小写字母，最多15个字符");
         }
-        if (emailExist(email)) {
+        if (emailExist(email))
+        {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "邮箱已注册");
         }
 
-        synchronized (email.intern()) {
+        synchronized (email.intern())
+        {
             // 检查邮箱验证码是否发送
             String sendEmail = redisManager.getString(RedisKeyEnum.ACTIVE_USER, email);
             if (StringUtils.isNotBlank(sendEmail))
@@ -465,12 +487,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户注册邮件已发送，请前往邮箱里查看。");
             }
             // 发送激活邮件
-            String accessToken = DigestUtil.md5Hex(
-                    String.format("%s%s%s%s",
-                            RandomUtil.randomString(5),
-                            userName,
-                            email,
-                            System.currentTimeMillis()));
+            String accessToken = DigestUtil.md5Hex(String.format("%s%s%s%s", RandomUtil.randomString(5), userName,
+                                                                 email, System.currentTimeMillis()));
             HashMap<String, Object> cacheMap = new HashMap<>();
             cacheMap.put("userEmail", email);
             cacheMap.put("userName", userName);
@@ -491,10 +509,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
         {
             throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "无效请求");
         }
-        return RegistrationInfo.builder()
-                .email(MapUtils.safetyGetValueByKey(cacheMap, "userEmail", String.class))
-                .nickName(MapUtils.safetyGetValueByKey(cacheMap, "userName", String.class))
-                .build();
+        return RegistrationInfo.builder().email(MapUtils.safetyGetValueByKey(cacheMap, "userEmail", String.class))
+                               .nickName(MapUtils.safetyGetValueByKey(cacheMap, "userName", String.class)).build();
     }
 
     @Override
@@ -502,12 +518,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
     public Boolean doActivateUser(String token, String code, UserActivationRequest userActivationRequest)
     {
         HashMap<String, Object> cacheMap = redisManager.getHashMap(RedisKeyEnum.ACTIVE_USER, token);
-        if (cacheMap == null || cacheMap.isEmpty()) {
+        if (cacheMap == null || cacheMap.isEmpty())
+        {
             throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "无效请求或激活过期");
         }
         String email = MapUtils.safetyGetValueByKey(cacheMap, "userEmail", String.class);
         String userName = MapUtils.safetyGetValueByKey(cacheMap, "userName", String.class);
-        if (StringUtils.isAnyBlank(email, userName)) {
+        if (StringUtils.isAnyBlank(email, userName))
+        {
             throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "无效请求或激活过期");
         }
         // 验证邮箱验证码
@@ -517,24 +535,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
         String confirmPassword = userActivationRequest.getConfirmPassword();
         validPassword(password, confirmPassword);
         // 创建用户
-        User user = User.builder()
-                .userName(userName)
-                .userEmail(email)
-                .userGender(UserGenderEnum.UNKNOWN.getValue())
-                .userAvatar(String.format(DEFAULT_AVATAR, userName))
-                .userRole(UserRoleEnum.USER.getValue())
-                .userProfile(DEFAULT_USER_PROFILE)
-                .userPassword(password) // doRegister内加密
-                .build();
+        User user = User.builder().userName(userName).userEmail(email).userGender(UserGenderEnum.UNKNOWN.getValue())
+                        .userAvatar(String.format(DEFAULT_AVATAR, userName)).userRole(UserRoleEnum.USER.getValue())
+                        .userProfile(DEFAULT_USER_PROFILE).userPassword(password) // doRegister内加密
+                        .build()
+                ;
         Long userId = doRegister(user);
-        if (userId == null) {
+        if (userId == null)
+        {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "注册失败");
         }
         // 删除缓存
         redisManager.delete(RedisKeyEnum.ACTIVE_USER, token);
         redisManager.delete(RedisKeyEnum.ACTIVE_USER, email);
         Boolean initApiKeyByUser = apiKeyService.initApiKeyByUser(user.getId());
-        if (!initApiKeyByUser) {
+        if (!initApiKeyByUser)
+        {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "注册失败: 初始化API密钥失败");
         }
         return true;
@@ -573,14 +589,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
         do
         {
             // 理论邮箱最短字符为5个
-            defaultNickName = String.format("%s%s%s%s%s",
-                    DEFAULT_NICK_NAME_PREFIX,
-                    DEFAULT_SEPARATOR,
-                    RandomUtil.randomNumbers(5),
-                    DEFAULT_SEPARATOR,
-                    email.substring(0, 5)
-            );
-        } while (nickNameExist(defaultNickName));
+            defaultNickName = String.format("%s%s%s%s%s", DEFAULT_NICK_NAME_PREFIX, DEFAULT_SEPARATOR,
+                                            RandomUtil.randomNumbers(5), DEFAULT_SEPARATOR, email.substring(0, 5));
+        }
+        while (nickNameExist(defaultNickName));
         return defaultNickName;
     }
 
@@ -605,7 +617,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements In
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入密码不一致");
         }
         // 检查密码是否合法
-        ThrowUtils.throwIf(!RegexUtils.validatePassword(userPassword), ErrorCode.PARAMS_ERROR, "密码不符合要求：必须包含大小写字母和数字的组合，可以使用特殊字符，长度在8-20之间)");
+        ThrowUtils.throwIf(!RegexUtils.validatePassword(userPassword), ErrorCode.PARAMS_ERROR,
+                           "密码不符合要求：必须包含大小写字母和数字的组合，可以使用特殊字符，长度在8-20之间)");
     }
 
 

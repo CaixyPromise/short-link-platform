@@ -1,7 +1,10 @@
 package com.caixy.shortlink.common;
 
 import com.baomidou.mybatisplus.annotation.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -13,6 +16,9 @@ import java.util.Date;
  * @since 2024/11/18 1:05
  */
 @Data
+@SuperBuilder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
 public class BaseEntity implements Serializable
 {
 

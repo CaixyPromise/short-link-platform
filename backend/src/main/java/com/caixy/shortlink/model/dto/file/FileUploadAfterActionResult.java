@@ -34,10 +34,21 @@ public class FileUploadAfterActionResult
     */
     private Long bizId;
 
+    /**
+    * 文件访问url
+    */
+    private String visitUrl;
+
     public static FileUploadAfterActionResult success() {
         return FileUploadAfterActionResult.builder()
                 .success(true)
                 .build();
+    }
+
+
+    public static FileUploadAfterActionResult.FileUploadAfterActionResultBuilder successBuilder() {
+        return FileUploadAfterActionResult.builder()
+                                          .success(true);
     }
 
     public static FileUploadAfterActionResult fail() {

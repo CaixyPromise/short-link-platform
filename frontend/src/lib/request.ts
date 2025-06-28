@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, {AxiosResponse} from "axios";
 import {BASE_URL, LOGIN_TOKEN_KEY, LOGIN_TYPE, LOGIN_TYPE_TOKEN} from "@/constant/env";
 import {LocalStorageUtil} from "@/lib/LocalStorageUtil";
 
@@ -13,10 +13,8 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
     function (config) {
         if (LOGIN_TYPE === LOGIN_TYPE_TOKEN) {
-            config.headers = {
-                ...config.headers,
-                Authorization: `Bearer ${LocalStorageUtil.getItem(LOGIN_TOKEN_KEY)}`,
-            };
+            if (!config.headers) config.headers = {};
+            config.headers['Authorization'] = `Bearer ${LocalStorageUtil.getItem(LOGIN_TOKEN_KEY)}`;
         }
         // 请求执行前执行
         return config;
@@ -30,12 +28,11 @@ axiosInstance.interceptors.request.use(
 // 创建响应拦截器
 axiosInstance.interceptors.response.use(
     // 2xx 响应触发
-    function (response) {
+    function <T = { code: number, data: T, message: string }>(response: AxiosResponse<T>) {
         // 处理响应数据
         const { data } = response;
         // 未登录
         if (data.code === 40100) {
-            console.log("未登录, data: ", data, response.request.responseURL)
             // 不是获取用户信息接口，或者不是登录页面，则跳转到登录页面
             if (
                 !response.request.responseURL.includes("user/get/login") &&
@@ -47,7 +44,7 @@ axiosInstance.interceptors.response.use(
             // 其他错误
             throw new Error(data.message ?? "服务器错误");
         }
-        return data;
+        return data as T;
     },
     // 非 2xx 响应触发
     function (error) {

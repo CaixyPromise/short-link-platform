@@ -11,6 +11,7 @@ import com.caixy.shortlink.common.BaseEntity;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.SuperBuilder;
 
 /**
  * 反馈信息表
@@ -18,7 +19,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @TableName(value ="t_feedback_info")
-@Builder
+@SuperBuilder(toBuilder = true)
 @Data
 public class FeedbackInfo extends BaseEntity  {
 

@@ -9,9 +9,8 @@ import java.io.Serializable;
 import java.util.Date;
 
 import com.caixy.shortlink.common.BaseEntity;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
  * 文件引用表
@@ -20,7 +19,9 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @TableName(value ="t_file_reference")
 @Data
-@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder(toBuilder = true)
 public class FileReference extends BaseEntity implements Serializable  {
 
     /**
@@ -37,7 +38,10 @@ public class FileReference extends BaseEntity implements Serializable  {
      * 展示名称
      */
     private String displayName;
-
+    /**
+     * 文件网络访问地址
+     */
+    private String visitUrl;
     /**
      * 文件业务类型
      */

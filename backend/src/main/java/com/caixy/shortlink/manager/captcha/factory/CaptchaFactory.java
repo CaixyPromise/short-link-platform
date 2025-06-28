@@ -71,17 +71,14 @@ public class CaptchaFactory
                                          return new BusinessException(ErrorCode.OPERATION_ERROR, "验证码校验失败");
                                      });
         // 1.2 校验验证码
-        Map<String, String> result = redisManager.getHashMap(
+        Map<String, Object> result = redisManager.getHashMap(
                 RedisKeyEnum.CAPTCHA_CODE,
-                String.class,
-                String.class,
                 sessionId);
-        if (sessionUuid == null || result == null || result.isEmpty())
-        {
+        if (sessionUuid == null || result == null || result.isEmpty()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "验证码错误");
         }
-        String redisCode = result.get("code").trim();
-        String redisUuid = result.get("uuid").trim();
+        String redisCode = Optional.ofNullable(result.get("code")).orElseThrow(() -> new BusinessException(ErrorCode.OPERATION_ERROR)).toString().trim();
+        String redisUuid = Optional.ofNullable(result.get("uuid")).orElseThrow(() -> new BusinessException(ErrorCode.OPERATION_ERROR)).toString().trim();
         // 移除session缓存的uuid
         ServletUtils.removeAttributeInSession(CommonConstant.CAPTCHA_SIGN);
         boolean removeByCache = redisManager.delete(RedisKeyEnum.CAPTCHA_CODE, sessionId);

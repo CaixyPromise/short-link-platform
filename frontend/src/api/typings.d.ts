@@ -32,8 +32,9 @@ declare namespace API {
   };
 
   type CheckFileExistResponse = {
+    /** 上传token */
     token?: string;
-    exist?: boolean;
+    challenge?: FileHmacInfo;
   };
 
   type DeleteRequest = {
@@ -53,6 +54,19 @@ declare namespace API {
   type EncryptAccountVO = {
     phone?: string;
     email?: string;
+  };
+
+  type FileHmacInfo = {
+    /** 一次性随机串，防重放 */
+    nonce?: string;
+    /** 挑战原文 */
+    challenge?: string;
+    /** 秒或毫秒级时间戳，用于过期校验 */
+    timestamp?: number;
+    /** 切片起始偏移 */
+    offset?: number;
+    /** 切片长度 */
+    length?: number;
   };
 
   type forceLogoutParams = {
@@ -207,17 +221,17 @@ declare namespace API {
   type IPageShortLinkStatsAccessRecordRespDTO = {
     size?: number;
     current?: number;
-    pages?: number;
-    total?: number;
     records?: ShortLinkStatsAccessRecordRespDTO[];
+    total?: number;
+    pages?: number;
   };
 
   type IPageUserFeedbackInfoVO = {
     size?: number;
     current?: number;
-    pages?: number;
-    total?: number;
     records?: UserFeedbackInfoVO[];
+    total?: number;
+    pages?: number;
   };
 
   type LinkAccessLogs = {
@@ -1528,13 +1542,16 @@ declare namespace API {
     status: number;
   };
 
-  type uploadFileParams = {
-    uploadFileRequest: UploadFileRequest;
-  };
-
   type UploadFileRequest = {
-    biz?: number;
-    token?: string;
+    biz: '0';
+    token: string;
+    fileName: string;
+    /** 文件挑战签名 */
+    signature?: string;
+    /** 防重放字段 */
+    nonce?: string;
+    /** 时间戳 */
+    timestamp?: number;
   };
 
   type User = {
@@ -1613,8 +1630,8 @@ declare namespace API {
   type UserResetEmailRequest = {
     originalEmail?: string;
     newEmail?: string;
-    code?: string;
-    password?: string;
+    code: string;
+    password: string;
     token?: string;
   };
 

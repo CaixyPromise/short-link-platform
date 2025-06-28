@@ -104,10 +104,18 @@ public class JsonUtils
      * @version 1.0
      * @since 2024/4/26 下午6:56
      */
-    public static <T> T jsonToObject(String json, Class<T> targetType)
-    {
-        return gson.fromJson(json, targetType);
+    public static <T> T jsonToObject(String json, Class<T> targetType) {
+        T result = gson.fromJson(json, targetType);
+
+        // 如果反序列化后的结果是 LinkedTreeMap，尝试转化
+        if (result instanceof Map) {
+            Map<?, ?> map = (Map<?, ?>) result;
+            return gson.fromJson(gson.toJson(map), targetType); // 转换为目标类型
+        }
+
+        return result;
     }
+
 
     public static <T> T jsonToObject(String json, Type typeOfT)
     {

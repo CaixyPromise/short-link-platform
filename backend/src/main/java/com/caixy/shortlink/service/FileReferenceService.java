@@ -14,13 +14,15 @@ import java.util.List;
 */
 public interface FileReferenceService extends IService<FileReference> {
 
-    Boolean bindFileReference(Long fileId, Long userId, FileActionBizEnum fileActionBizEnum, FileUploadAfterActionResult afterActionResult);
+    FileReference bindFileReference(Long fileId, Long userId, FileActionBizEnum fileActionBizEnum, FileUploadAfterActionResult afterActionResult);
 
     Boolean removeFileReferenceById(Long fileId, Long userId, String bizType, Long bizId);
-
-    Boolean removeFileReferenceByBiz(Long userId, String bizType, Long bizId);
 
     Boolean removeFileReferencesByFileIds(List<Long> fileIds, Long userId, String bizType, Long bizId);
 
     List<FileReference> listFileReferenceByBiz(Long userId, String bizType, Long bizId);
+
+    FileReference findFileReferenceByBiz(Long userId, String bizType, Long bizId);
+
+    Boolean isSameFile(String bizType, Long bizId, Long userId, String sha256, Long fileSize);
 }

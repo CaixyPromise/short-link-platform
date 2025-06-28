@@ -9,6 +9,8 @@
             <result property="fileId" column="file_id" jdbcType="BIGINT"/>
             <result property="userId" column="user_id" jdbcType="BIGINT"/>
             <result property="displayName" column="display_name" jdbcType="VARCHAR"/>
+            <result property="visitUrl" column="visit_url" jdbcType="VARCHAR" />
+
             <result property="bizType" column="biz_type" jdbcType="VARCHAR"/>
             <result property="bizId" column="biz_id" jdbcType="BIGINT"/>
             <result property="accessLevel" column="access_level" jdbcType="TINYINT"/>
@@ -18,7 +20,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,file_id,user_id,
+        id,file_id,user_id,visit_url,
         display_name,biz_type,biz_id,
         access_level,create_time,update_time,
         is_deleted

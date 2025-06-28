@@ -25,6 +25,10 @@ public final class MapUtils
         return new HashMap<>();
     }
 
+    public static Boolean isEmpty(Map<?, ?> map) {
+        return map == null || map.isEmpty();
+    }
+
     /**
      * 根据键列表和值列表创建一个 HashMap
      *

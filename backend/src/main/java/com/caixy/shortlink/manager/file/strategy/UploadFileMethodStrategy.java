@@ -40,7 +40,7 @@ public interface UploadFileMethodStrategy
      * @version 1.0
      * @since 2024/10/19 上午2:20
      */
-    Boolean deleteFileAllowFail(Path key);
+    Boolean deleteFileWithTolerance(Path key);
 
     /**
      * 获取文件
@@ -50,6 +50,8 @@ public interface UploadFileMethodStrategy
      * @since 2024/7/2 下午8:18
      */
     Resource getFile(Path key) throws IOException;
+
+    byte[] readSlice(Path key, long offset, int length) throws IOException;
 
     /**
      * 构建可以直接网络访问的路径

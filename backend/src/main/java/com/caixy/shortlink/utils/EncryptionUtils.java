@@ -29,6 +29,10 @@ public class EncryptionUtils
         return passwordEncoder.encode(rawPassword);
     }
 
+    public static void main(String[] args) throws Exception {
+        System.out.println(encryptPassword("As123456789.."));
+    }
+
     public static boolean matchPassword(String originPassword, String hashPassword)
     {
         return passwordEncoder.matches(originPassword, hashPassword);

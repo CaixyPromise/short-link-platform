@@ -9,6 +9,7 @@ import java.util.Date;
 
 import com.caixy.shortlink.common.BaseEntity;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
  * 当日统计表
@@ -17,7 +18,7 @@ import lombok.*;
 @EqualsAndHashCode(callSuper = true)
 @TableName(value ="t_link_stats_today")
 @Data
-@Builder
+@SuperBuilder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class LinkStatsToday extends BaseEntity implements Serializable {

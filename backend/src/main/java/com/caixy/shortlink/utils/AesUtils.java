@@ -1,5 +1,6 @@
 package com.caixy.shortlink.utils;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -32,22 +33,29 @@ public class AesUtils
     private static final String DEFAULT_KEY = "S6osrowRYFmnY5ctNIbCua5kY1p1FrBf7kV9P3unJHU=";
 
     /**
-     * 默认的加密模式，可根据需要修改（如 GCM、CBC、ECB等）
+     * 默认的加密模式
      */
     @Getter
     private static final EncryptionMode DEFAULT_MODE = EncryptionMode.GCM;
 
     /**
-     * 用户如果想查看加解密后的结构信息，可使用此模型
-     *
-     * @param cipherText 加密后的密文
-     * @param iv         如果某些模式需要 IV，则会存储到这里，否则为 null
+     * 用户如果想查看加解密后的结构信息，可使用此对象包装结果
      */
-    public record CipherResult(byte[] cipherText,
-                               byte[] iv)
+    @AllArgsConstructor
+    @Getter
+    public static class CipherResult
     {
+        /**
+        * 加密后的密文
+        */
+        private byte[] cipherText;
+        /**
+        * 如果某些模式需要 IV，则会存储到这里，否则为 null
+        */
+        private byte[] iv;
         public String getBase64CipherText()
         {
+            // 如果cipherText不为空，则将cipherText转换为Base64编码的字符串
             return cipherText != null ? Base64.getEncoder().encodeToString(cipherText) : null;
         }
 
@@ -63,12 +71,12 @@ public class AesUtils
          */
         public String combineIvAndCipherText()
         {
-            if (cipherText() == null || cipherText().length == 0)
+            if (getCipherText() == null || getCipherText().length == 0)
             {
                 throw new IllegalArgumentException("cipherResult 或 cipherText 不能为空");
             }
-            byte[] iv = iv();
-            byte[] cipherText = cipherText();
+            byte[] iv = getIv();
+            byte[] cipherText = getCipherText();
 
             if (iv != null && iv.length > 0)
             {
@@ -215,16 +223,16 @@ public class AesUtils
     public static String decrypt(CipherResult cipherResult, String base64Key, EncryptionMode mode)
     {
         if (cipherResult == null
-            || cipherResult.cipherText() == null
-            || cipherResult.cipherText().length == 0)
+            || cipherResult.getCipherText() == null
+            || cipherResult.getCipherText().length == 0)
         {
             return "";
         }
         try
         {
-            byte[] decodedCipherText = cipherResult.cipherText();
+            byte[] decodedCipherText = cipherResult.getCipherText();
 
-            byte[] ivBytes = cipherResult.iv();
+            byte[] ivBytes = cipherResult.getIv();
             // 若模式需要 iv，但没传 iv，则无法解密
             if (mode.getIvSize() > 0 && (ivBytes == null || ivBytes.length != mode.getIvSize()))
             {
@@ -363,7 +371,6 @@ public class AesUtils
         }
     }
 
-    // ===================== 演示 =====================
     public static void main(String[] args) throws Exception
     {
         String testString = "Hello, Encryption World!";

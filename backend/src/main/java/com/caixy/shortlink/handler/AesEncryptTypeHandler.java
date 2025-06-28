@@ -19,8 +19,6 @@ import java.sql.SQLException;
  */
 public class AesEncryptTypeHandler extends BaseTypeHandler<String>
 {
-    private static final Logger log = LoggerFactory.getLogger(AesEncryptTypeHandler.class);
-
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, String parameter, JdbcType jdbcType) throws
                                                                                                       SQLException
@@ -57,7 +55,6 @@ public class AesEncryptTypeHandler extends BaseTypeHandler<String>
      */
     private String encrypt(String data)
     {
-        log.info("AES加密前数据: {}", data);
         return AesUtils.encrypt(data).combineIvAndCipherText();
     }
 
@@ -69,7 +66,6 @@ public class AesEncryptTypeHandler extends BaseTypeHandler<String>
      */
     private String decrypt(String data)
     {
-        log.info("AES解密前数据: {}", data);
         return AesUtils.decrypt(AesUtils.CipherResult.splitIvAndCipherText(data));
     }
 }

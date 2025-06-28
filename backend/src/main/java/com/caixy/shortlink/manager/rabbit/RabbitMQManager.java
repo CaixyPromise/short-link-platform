@@ -31,7 +31,11 @@ public class RabbitMQManager
 
     private final RabbitTemplate rabbitTemplate;
 
-
+    /**
+     * 发送延迟消息
+     * 
+     * @author CAIXYPROMISE
+     */
     /*──────────────────────── 发送延迟消息 ────────────────────────*/
     public void sendDelayedMessage(RabbitMQQueueEnum queueEnum, Object payload) {
 
@@ -60,8 +64,11 @@ public class RabbitMQManager
             }
         }
     }
-
-    /* 发送延迟消息 + 重试计数 */
+    /**
+     *  发送延迟消息 + 重试计数 
+     * 
+     * @author CAIXYPROMISE
+     */
     public void sendDelayedMessageWithRetry(RabbitMQQueueEnum queueEnum,
                                             Object payload,
                                             int retryCount) {
@@ -78,12 +85,22 @@ public class RabbitMQManager
                 queueEnum.getQueueName(), retryCount, payload);
     }
 
-    /*──────────────────────── 发送普通消息 ────────────────────────*/
+    /**
+     * 发送普通消息
+     * 
+     * @author CAIXYPROMISE
+     */
     public void sendMessage(RabbitMQQueueEnum queueEnum, Object payload) {
         convertAndSend(queueEnum, payload, Map.of(), null);
     }
 
-    /*──────────────────── 共用的实际发送方法 ──────────────────────*/
+    /**
+     * 共用的实际发送方法
+     * 
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @version 2025/5/28 4:40
+     */
     private void convertAndSend(RabbitMQQueueEnum qEnum,
                                 Object payload,
                                 Map<String,Object> headers,

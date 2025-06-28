@@ -1,7 +1,9 @@
 package com.caixy.shortlink.utils;
 
 import cn.hutool.core.text.StrFormatter;
+import com.caixy.shortlink.common.ErrorCode;
 import com.caixy.shortlink.constant.CommonConstant;
+import com.caixy.shortlink.exception.BusinessException;
 import org.springframework.util.AntPathMatcher;
 
 import java.util.*;
@@ -159,6 +161,14 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils
     public static String trim(String str)
     {
         return (str == null ? "" : str.trim());
+    }
+
+    /**
+     * 替换所有关于网络非法字符为下划线
+     */
+    public static String sanitizeUrl(String url)
+    {
+        return url == null ? "" : url.replaceAll("[\\\\/:*?\"<>|]", "_");
     }
 
     /**

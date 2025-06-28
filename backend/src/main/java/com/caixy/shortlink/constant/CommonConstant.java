@@ -69,7 +69,7 @@ public interface CommonConstant
     String CAPTCHA_SIGN = "captcha";
 
     String FRONTED_URL = "http://localhost:3000";
-    String BACKEND_URL = "http://localhost:7529";
+    String BACKEND_URL = "http://localhost:9998";
 
     String URL_SUFFIX_SEPARATOR = "/";
 

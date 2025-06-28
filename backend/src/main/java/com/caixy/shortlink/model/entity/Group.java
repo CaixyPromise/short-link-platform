@@ -10,6 +10,7 @@ import com.caixy.shortlink.common.BaseEntity;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.SuperBuilder;
 
 /**
  * 分组信息表
@@ -19,7 +20,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @TableName(value = "t_group")
 @Data
-@Builder
+@SuperBuilder(toBuilder = true)
 public class Group extends BaseEntity implements Serializable
 {
     /**

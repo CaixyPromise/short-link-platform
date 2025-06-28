@@ -21,7 +21,7 @@ public enum SaveFileMethodEnum
     /**
      * 本地保存
      */
-    LOCAL_SAVE(0, "本地保存", false),
+    SAVE_LOCAL(0, "本地保存", false),
     /**
      * 腾讯云COS保存
      */
